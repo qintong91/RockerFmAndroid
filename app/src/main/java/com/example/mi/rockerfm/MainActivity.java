@@ -1,5 +1,6 @@
 package com.example.mi.rockerfm;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,16 +9,26 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
-
+    TextView mTextView;
+    Document mDoc;
+    DownloadFilesTask mTask;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        mTextView  = (TextView)findViewById(R.id.text1);
+        mTask = new DownloadFilesTask();
+        mTask.execute();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -48,5 +59,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    private class DownloadFilesTask extends AsyncTask<Void, Integer, Long> {
+        protected Long doInBackground(Void... params) {
+
+            long totalSize = 0;
+            try {
+                mDoc = Jsoup.connect("http://www.rockerfm.com").get();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return totalSize;
+        }
+
+
+
+        protected void onPostExecute(Long result) {
+
+            mTextView.setText(mDoc.toString());
+        }
     }
 }
