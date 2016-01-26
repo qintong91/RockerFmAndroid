@@ -15,6 +15,7 @@ import com.example.mi.rockerfm.R;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
@@ -81,7 +82,9 @@ public class MainActivity extends AppCompatActivity {
 
             mTextView.setText(mDoc.toString());
             Elements contents = mDoc.getElementsByTag("article");
-
+            String id = contents.get(1).attr("id");
+            String title = contents.get(1).getElementsByTag("a").attr("title");
+            String href = contents.get(1).getElementsByTag("a").attr("href");
         }
     }
 }
