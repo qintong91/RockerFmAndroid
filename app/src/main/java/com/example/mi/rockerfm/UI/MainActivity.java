@@ -12,6 +12,8 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.example.mi.rockerfm.R;
+import com.example.mi.rockerfm.beans.Articals;
+import com.example.mi.rockerfm.utls.Net;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -20,10 +22,15 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 
+import retrofit.Callback;
+import retrofit.Response;
+import retrofit.Retrofit;
+
 public class MainActivity extends AppCompatActivity {
     TextView mTextView;
     Document mDoc;
     DownloadFilesTask mTask;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+        Net.getmApi().articals(new ArticalListCallBack());
     }
 
     @Override
@@ -85,6 +93,20 @@ public class MainActivity extends AppCompatActivity {
             String id = contents.get(1).attr("id");
             String title = contents.get(1).getElementsByTag("a").attr("title");
             String href = contents.get(1).getElementsByTag("a").attr("href");
+        }
+    }
+    private static final class ArticalListCallback<T extends Articals> implements Callback<T>{
+
+
+        @Override
+        public void onResponse(Response<T extends Articals> response, Retrofit retrofit) {
+            Articals articals = response.body();
+            articals.getArticalList()
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+
         }
     }
 }

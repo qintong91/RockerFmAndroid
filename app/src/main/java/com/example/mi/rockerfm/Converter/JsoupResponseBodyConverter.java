@@ -15,14 +15,14 @@ import java.util.ArrayList;
 import retrofit.Converter;
 
 /**
- * Created by mi on 16-1-25.
+ * Created by qintong on 16-1-25.
  */
 public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T> {
     private final Class<?> elementClass;
 
-    JsoupResponseBodyConverter() {
+   /* JsoupResponseBodyConverter() {
         elementClass = null;
-    }
+    }*/
 
     JsoupResponseBodyConverter(Class<?> elementClass) {
         this.elementClass = elementClass;
