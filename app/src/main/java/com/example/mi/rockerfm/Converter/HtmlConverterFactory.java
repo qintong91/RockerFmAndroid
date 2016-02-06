@@ -22,7 +22,7 @@ public class HtmlConverterFactory extends Converter.Factory {
 
     @Override
     public Converter<ResponseBody, ?> fromResponseBody(Type type, Annotation[] annotations) {
-        return new JsoupResponseBodyConverter<Type>(Type.class);
+                return new JsoupResponseBodyConverter<Type>( type);
     }
 
     @Override

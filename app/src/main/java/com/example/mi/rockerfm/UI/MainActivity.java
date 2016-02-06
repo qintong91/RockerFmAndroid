@@ -6,6 +6,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,14 +23,13 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 
+import retrofit.Call;
 import retrofit.Callback;
 import retrofit.Response;
 import retrofit.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
     TextView mTextView;
-    Document mDoc;
-    DownloadFilesTask mTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mTextView  = (TextView)findViewById(R.id.text1);
-        mTask = new DownloadFilesTask();
-        mTask.execute();
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -48,7 +46,9 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        Net.getmApi().articals(new ArticalListCallBack());
+
+        Call<Articals> call = Net.getmApi().articals();
+        call.enqueue(new ArticalListCallback());
     }
 
     @Override
@@ -72,41 +72,16 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    private class DownloadFilesTask extends AsyncTask<Void, Integer, Long> {
-        protected Long doInBackground(Void... params) {
-
-            long totalSize = 0;
-            try {
-                mDoc = Jsoup.connect("http://www.rockerfm.com").get();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return totalSize;
-        }
-
-
-
-        protected void onPostExecute(Long result) {
-
-            mTextView.setText(mDoc.toString());
-            Elements contents = mDoc.getElementsByTag("article");
-            String id = contents.get(1).attr("id");
-            String title = contents.get(1).getElementsByTag("a").attr("title");
-            String href = contents.get(1).getElementsByTag("a").attr("href");
-        }
-    }
-    private static final class ArticalListCallback<T extends Articals> implements Callback<T>{
-
+    private static final class ArticalListCallback implements Callback<Articals>{
 
         @Override
-        public void onResponse(Response<T extends Articals> response, Retrofit retrofit) {
+        public void onResponse(Response<Articals> response, Retrofit retrofit) {
             Articals articals = response.body();
-            articals.getArticalList()
         }
 
         @Override
         public void onFailure(Throwable t) {
-
+            Log.i("aa",t.getMessage());
         }
     }
 }
