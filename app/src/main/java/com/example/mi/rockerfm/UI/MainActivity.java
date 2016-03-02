@@ -1,20 +1,29 @@
 package com.example.mi.rockerfm.UI;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.mi.rockerfm.R;
 import com.example.mi.rockerfm.beans.Articals;
 import com.example.mi.rockerfm.utls.Net;
+import com.facebook.drawee.view.SimpleDraweeView;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -22,6 +31,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.URI;
 
 import retrofit.Call;
 import retrofit.Callback;
@@ -29,15 +39,22 @@ import retrofit.Response;
 import retrofit.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
-    TextView mTextView;
-
+    private RecyclerView mRecyclerview;
+    private LinearLayoutManager mLayoutManager;
+    RecyclerView.Adapter mRecyclerAdapter;
+    private Articals mArticals;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        mTextView  = (TextView)findViewById(R.id.text1);
+        mRecyclerview = (RecyclerView) findViewById(R.id.recyclerView);
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerview.setLayoutManager(mLayoutManager);
+        mRecyclerAdapter  = new MainRecyclerViewAdapter();
+        mRecyclerview.setAdapter(mRecyclerAdapter);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,11 +89,12 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-    private static final class ArticalListCallback implements Callback<Articals>{
+    private final class ArticalListCallback implements Callback<Articals>{
 
         @Override
         public void onResponse(Response<Articals> response, Retrofit retrofit) {
-            Articals articals = response.body();
+            mArticals = response.body();
+            mRecyclerAdapter.notifyDataSetChanged();
         }
 
         @Override
@@ -84,4 +102,38 @@ public class MainActivity extends AppCompatActivity {
             Log.i("aa",t.getMessage());
         }
     }
+    public class MainRecyclerViewAdapter extends RecyclerView.Adapter<MainRecyclerViewAdapter.ViewHolder> {
+        //创建新View，被LayoutManager所调用
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+            View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.main_item,viewGroup,false);
+            ViewHolder vh = new ViewHolder(view);
+            return vh;
+        }
+        //将数据与界面进行绑定的操作
+        @Override
+        public void onBindViewHolder(ViewHolder viewHolder, int position) {
+            viewHolder.mTitleTextView.setText(mArticals.articalList.get(position).getTitle());
+            viewHolder.mImageView.setImageURI(Uri.parse(mArticals.articalList.get(position).getImgHref()));
+            viewHolder.mAuthorTextView.setText(mArticals.articalList.get(position).getAuthor());
+        }
+        //获取数据的数量
+        @Override
+        public int getItemCount() {
+            return mArticals == null ? 0:mArticals.articalList.size();
+        }
+        //自定义的ViewHolder，持有每个Item的的所有界面元素
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            public TextView mTitleTextView;
+            public SimpleDraweeView mImageView;
+            public TextView mAuthorTextView;
+            public ViewHolder(View view){
+                super(view);
+                mTitleTextView = (TextView) view.findViewById(R.id.text_title);
+                mImageView = (SimpleDraweeView)view.findViewById(R.id.image);
+                mAuthorTextView = (TextView) view.findViewById(R.id.text_author);
+            }
+        }
+    }
+
 }
