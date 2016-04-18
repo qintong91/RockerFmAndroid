@@ -1,10 +1,15 @@
 package com.example.mi.rockerfm.UI;
 
+import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,7 +23,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.mi.rockerfm.R;
-import com.example.mi.rockerfm.beans.Articals;
+import com.example.mi.rockerfm.JsonBeans.Articals;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.android.gms.appindexing.Action;
@@ -32,17 +37,22 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
-import retrofit.Call;
-import retrofit.Callback;
-import retrofit.Response;
-import retrofit.Retrofit;
+import de.greenrobot.event.EventBus;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
     private RecyclerView mRecyclerview;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
     private LinearLayoutManager mLayoutManager;
     RecyclerView.Adapter mRecyclerAdapter;
     private Articals mArticals;
+    private boolean mIsFresh;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,10 +60,12 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mRecyclerview = (RecyclerView) findViewById(R.id.recyclerView);
+        mSwipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swiperefreshlayout);
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerview.setLayoutManager(mLayoutManager);
         mRecyclerAdapter  = new MainRecyclerViewAdapter();
         mRecyclerview.setAdapter(mRecyclerAdapter);
+        mRecyclerview.addItemDecoration(new DividerItemDecoration());
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -64,8 +76,39 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Call<Articals> call = Net.getmApi().articals();
+        //Call<Articals> call = Net.getmApi().articals();
+        Call<Articals> call = Net.getmApi().mainArticals(1,10);
         call.enqueue(new ArticalListCallback());
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Log.d("aa", "invoke onRefresh...");
+                Call<Articals> call = Net.getmApi().mainArticals(1, 10);
+                mIsFresh = true;
+                call.enqueue(new ArticalListCallback());
+            }
+        });
+        //mSwipeRefreshLayout.setRefreshing(true);
+        mRecyclerview.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView,
+                                             int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_IDLE
+                        && lastVisibleItem + 1 == adapter.getItemCount()) {
+                    mSwipeRefreshWidget.setRefreshing(true);
+                    // 此处在现实项目中，请换成网络请求数据代码，sendRequest .....
+                    handler.sendEmptyMessageDelayed(0, 3000);
+                }
+            }
+
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                lastVisibleItem = mLayoutManager.findLastVisibleItemPosition();
+            }
+        });
     }
 
     @Override
@@ -92,17 +135,21 @@ public class MainActivity extends AppCompatActivity {
     private final class ArticalListCallback implements Callback<Articals>{
 
         @Override
-        public void onResponse(Response<Articals> response, Retrofit retrofit) {
+        public void onResponse(Call<Articals> call,Response<Articals> response) {
             mArticals = response.body();
             mRecyclerAdapter.notifyDataSetChanged();
+            if(mIsFresh){
+                mSwipeRefreshLayout.setRefreshing(false);
+                mIsFresh = false;
+            }
         }
 
         @Override
-        public void onFailure(Throwable t) {
+        public void onFailure(Call<Articals> call,Throwable t) {
             Log.i("aa",t.getMessage());
         }
     }
-    public class MainRecyclerViewAdapter extends RecyclerView.Adapter<MainRecyclerViewAdapter.ViewHolder> {
+    public class MainRecyclerViewAdapter extends RecyclerView.Adapter<MainRecyclerViewAdapter.ViewHolder>{
         //创建新View，被LayoutManager所调用
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
@@ -113,17 +160,20 @@ public class MainActivity extends AppCompatActivity {
         //将数据与界面进行绑定的操作
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, int position) {
-            viewHolder.mTitleTextView.setText(mArticals.articalList.get(position).getTitle());
-            viewHolder.mImageView.setImageURI(Uri.parse(mArticals.articalList.get(position).getImgHref()));
-            viewHolder.mAuthorTextView.setText(mArticals.articalList.get(position).getAuthor());
+            viewHolder.mTitleTextView.setText(mArticals.getData().get(position).getTitleAttr());
+            viewHolder.mImageView.setImageURI(Uri.parse(mArticals.getData().get(position).getCover()));
+            viewHolder.mAuthorTextView.setText(mArticals.getData().get(position).getAuthor().getNickname());
+
         }
         //获取数据的数量
         @Override
         public int getItemCount() {
-            return mArticals == null ? 0:mArticals.articalList.size();
+            //return mArticals == null ? 0:mArticals.articalList.size();
+            return mArticals == null ? 0:mArticals.getCurrentCount();
         }
+
         //自定义的ViewHolder，持有每个Item的的所有界面元素
-        public class ViewHolder extends RecyclerView.ViewHolder {
+        public class ViewHolder extends RecyclerView.ViewHolder implements  View.OnClickListener{
             public TextView mTitleTextView;
             public SimpleDraweeView mImageView;
             public TextView mAuthorTextView;
@@ -132,8 +182,31 @@ public class MainActivity extends AppCompatActivity {
                 mTitleTextView = (TextView) view.findViewById(R.id.text_title);
                 mImageView = (SimpleDraweeView)view.findViewById(R.id.image);
                 mAuthorTextView = (TextView) view.findViewById(R.id.text_author);
+                view.setOnClickListener(this);
+            }
+            @Override
+            public void onClick(View v) {
+                EventBus.getDefault().postSticky(mArticals.getData().get(getAdapterPosition()));
+                Intent intent = new Intent(MainActivity.this,ArticleActivity.class);
+                startActivity(intent);
             }
         }
     }
+     private class DividerItemDecoration extends RecyclerView.ItemDecoration{
+        @Override
+        public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
+            c.drawColor(getResources().getColor(R.color.colorDivider));
+        }
+
+        @Override
+        public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
+            onDrawOver(c, parent);
+        }
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            outRect.set(0, 0, 0, 8);
+        }
+    }
+
 
 }

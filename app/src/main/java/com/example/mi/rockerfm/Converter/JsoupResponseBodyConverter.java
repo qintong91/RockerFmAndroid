@@ -47,7 +47,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
 
                 Articals articals = (Articals) obj;
                 Document document = Jsoup.parse(value.string());
-                Elements contents = document.getElementsByTag("article");
+                Elements contents = document.select(".posts-main").select("article");
                 Field fieldArticalList = elementClass.getDeclaredField("articalList");
                 List<Articals.Artical> list = new ArrayList<Articals.Artical>();
                 fieldArticalList.set(articals,list);
@@ -59,7 +59,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
                     objArtical.setImgHref(contents.get(i).getElementsByTag("img").attr("src"));
                     objArtical.setIndexIntro(contents.get(i).getElementsByTag("img").attr("alt"));
                     objArtical.setType(contents.get(i).getElementsByTag("i").attr("class"));
-                    objArtical.setAuthor(contents.get(i).getElementsByTag("i").attr("class"));
+                    objArtical.setAuthor(contents.get(i).getElementsByClass("author").text());
                     Elements labelElements = contents.get(i).getElementsByClass("label");
                     if(labelElements.size()>=1){
                         Elements labelStringElements = labelElements.get(0).getElementsByTag("a");

@@ -28,7 +28,7 @@
             android:textSize="20sp"
             android:paddingLeft="10dp"
             android:textColor="@color/common_signin_btn_dark_text_default"
-            android:text="mmmmmm"/>
+            android:text=""/>
         <TextView
             android:id="@+id/text_author"
             android:layout_width="wrap_content"
@@ -38,6 +38,7 @@
             android:textSize="10sp"
             android:paddingLeft="10dp"
             android:textColor="@color/common_signin_btn_dark_text_default"
-            android:text="aaa"/>
+            android:paddingBottom="2dp"
+            android:text=""/>
     </RelativeLayout>
 </RelativeLayout>
