@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity{
             }
         });
         mArticals = Cache.getArticalList();
-        if(mArticals == null){
+        if(isListEmpty()){
             //Call<Articals> call = Net.getmApi().articals();
             Call<Articals> call = Net.getmApi().mainArticals(1,PAGE_SIZE);
             call.enqueue(new ArticalListCallback());
@@ -90,9 +90,11 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onRefresh() {
                 Log.d("aa", "invoke onRefresh...");
-                Call<Articals> call = Net.getmApi().mainArticals(1, PAGE_SIZE);
                 mIsFreshing = true;
-                call.enqueue(new ArticalListCallback());
+                refresh();
+               /* Call<Articals> call = Net.getmApi().mainArticals(1, PAGE_SIZE);
+                mIsFreshing = true;
+                call.enqueue(new ArticalListCallback());*/
             }
         });
         //mSwipeRefreshLayout.setRefreshing(true);
@@ -158,7 +160,11 @@ public class MainActivity extends AppCompatActivity{
 
         @Override
         public void onResponse(Call<Articals> call,Response<Articals> response) {
-            mArticals = response.body();
+            if(isListEmpty()) {
+                mArticals = response.body();
+            } else {
+
+            }
             mRecyclerAdapter.notifyDataSetChanged();
             if(mIsFreshing){
                 mSwipeRefreshLayout.setRefreshing(false);
@@ -168,6 +174,7 @@ public class MainActivity extends AppCompatActivity{
 
         @Override
         public void onFailure(Call<Articals> call,Throwable t) {
+            setNetRequestFailure();
             Log.i("aa",t.getMessage());
         }
     }
@@ -184,10 +191,56 @@ public class MainActivity extends AppCompatActivity{
         }
 
         @Override
-        public void onFailure(Call<Articals> call,Throwable t) {
+            public void onFailure (Call<Articals> call,Throwable t) {
+            setNetRequestFailure();
             Log.i("aa",t.getMessage());
         }
     }
+    private final class IfRefreshingCallback implements Callback<Articals>{
+
+        @Override
+        public void onResponse(Call<Articals> call,Response<Articals> response) {
+
+            if (mArticals.getTotalCount() >= response.body().getTotalCount()) {
+                Toast.makeText(MainActivity.this, "已经是最新了", Toast.LENGTH_LONG).show();
+                if (mIsFreshing) {
+                    mSwipeRefreshLayout.setRefreshing(false);
+                    mIsFreshing = false;
+                }
+            } else {
+                call = Net.getmApi().mainArticals(1, response.body().getCurrentCount() - mArticals.getTotalCount());
+                call.enqueue(new RefreshingCallback());
+            }
+        }
+
+        @Override
+        public void onFailure(Call<Articals> call,Throwable t) {
+            setNetRequestFailure();
+            Log.i("aa",t.getMessage());
+        }
+    }
+
+    private final class RefreshingCallback implements Callback<Articals>{
+
+        @Override
+        public void onResponse(Call<Articals> call,Response<Articals> response) {
+            response.body().getData().addAll(mArticals.getData());
+            response.body().setCurrentCount(mArticals.getCurrentCount() + response.body().getCurrentCount());
+            mArticals = response.body();
+            mRecyclerAdapter.notifyDataSetChanged();
+            if(mIsFreshing){
+                mSwipeRefreshLayout.setRefreshing(false);
+                mIsFreshing = false;
+            }
+        }
+
+        @Override
+        public void onFailure(Call<Articals> call,Throwable t) {
+            setNetRequestFailure();
+            Log.i("aa",t.getMessage());
+        }
+    }
+
 
     public class MainRecyclerViewAdapter extends RecyclerView.Adapter<MainRecyclerViewAdapter.ViewHolder>{
         //创建新View，被LayoutManager所调用
@@ -246,6 +299,29 @@ public class MainActivity extends AppCompatActivity{
         public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
             outRect.set(0, 0, 0, 8);
         }
+    }
+    private boolean isListEmpty(){
+        return (mArticals == null || mArticals.getCurrentCount()== 0);
+    }
+    private void refresh(){
+        Call<Articals> call = null;
+        if(isListEmpty()){
+            //Call<Articals> call = Net.getmApi().articals();
+            call = Net.getmApi().mainArticals(1,PAGE_SIZE);
+            call.enqueue(new ArticalListCallback());
+        } else {
+            call = Net.getmApi().mainArticals(1,1);
+            call.enqueue(new IfRefreshingCallback());
+        }
+    }
+    private void setNetRequestFailure(){
+        Toast.makeText(MainActivity.this, "网络请求失败", Toast.LENGTH_LONG).show();
+        if(mIsFreshing){
+            mSwipeRefreshLayout.setRefreshing(false);
+            mIsFreshing = false;
+        }
+        if(mIsLoadingMore)
+            mIsLoadingMore = false;
     }
 
 }
