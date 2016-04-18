@@ -1,9 +1,11 @@
 package com.example.mi.rockerfm.JsonBeans;
 
+import java.io.Serializable;
+
 /**
  * Created by qin on 2016/4/16.
  */
-public class Author {
+public class Author implements Serializable{
     private int id;
 
     public int getId() {

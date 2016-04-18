@@ -21,9 +21,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.mi.rockerfm.R;
 import com.example.mi.rockerfm.JsonBeans.Articals;
+import com.example.mi.rockerfm.utls.Cache;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.android.gms.appindexing.Action;
@@ -50,9 +52,12 @@ public class MainActivity extends AppCompatActivity{
     private RecyclerView mRecyclerview;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private LinearLayoutManager mLayoutManager;
-    RecyclerView.Adapter mRecyclerAdapter;
+    private RecyclerView.Adapter mRecyclerAdapter;
     private Articals mArticals;
-    private boolean mIsFresh;
+    private boolean mIsFreshing;
+    private boolean mIsLoadingMore;
+    private static final int PAGE_SIZE = 10;
+/*4176*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,40 +80,57 @@ public class MainActivity extends AppCompatActivity{
                         .setAction("Action", null).show();
             }
         });
-
-        //Call<Articals> call = Net.getmApi().articals();
-        Call<Articals> call = Net.getmApi().mainArticals(1,10);
-        call.enqueue(new ArticalListCallback());
+        mArticals = Cache.getArticalList();
+        if(mArticals == null){
+            //Call<Articals> call = Net.getmApi().articals();
+            Call<Articals> call = Net.getmApi().mainArticals(1,PAGE_SIZE);
+            call.enqueue(new ArticalListCallback());
+        }
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 Log.d("aa", "invoke onRefresh...");
-                Call<Articals> call = Net.getmApi().mainArticals(1, 10);
-                mIsFresh = true;
+                Call<Articals> call = Net.getmApi().mainArticals(1, PAGE_SIZE);
+                mIsFreshing = true;
                 call.enqueue(new ArticalListCallback());
             }
         });
         //mSwipeRefreshLayout.setRefreshing(true);
         mRecyclerview.addOnScrollListener(new RecyclerView.OnScrollListener() {
-
+            int visibleItemCount;
+            int totalItemCount;
+            int firstVisibleItem;
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView,
                                              int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-                if (newState == RecyclerView.SCROLL_STATE_IDLE
-                        && lastVisibleItem + 1 == adapter.getItemCount()) {
-                    mSwipeRefreshWidget.setRefreshing(true);
-                    // 此处在现实项目中，请换成网络请求数据代码，sendRequest .....
-                    handler.sendEmptyMessageDelayed(0, 3000);
-                }
+
             }
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                lastVisibleItem = mLayoutManager.findLastVisibleItemPosition();
+                visibleItemCount = recyclerView.getChildCount();
+                totalItemCount = mLayoutManager.getItemCount();
+                firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
+                if(!mIsLoadingMore){
+                    if(visibleItemCount + firstVisibleItem >= totalItemCount){
+                        mIsLoadingMore = true;
+                        Call<Articals> call = Net.getmApi().mainArticals(mArticals.getCurrentPage()+1,PAGE_SIZE);
+                        call.enqueue(new LoadMoreCallback());
+                        Log.e("aaaa", "loading ");
+                    }
+                }
             }
         });
+    }
+
+    @Override
+    public  void onPause(){
+        super.onPause();
+        if(mArticals != null && mArticals.getCurrentCount()!=0){
+            Cache.putArticalList(mArticals);
+        }
     }
 
     @Override
@@ -138,9 +160,9 @@ public class MainActivity extends AppCompatActivity{
         public void onResponse(Call<Articals> call,Response<Articals> response) {
             mArticals = response.body();
             mRecyclerAdapter.notifyDataSetChanged();
-            if(mIsFresh){
+            if(mIsFreshing){
                 mSwipeRefreshLayout.setRefreshing(false);
-                mIsFresh = false;
+                mIsFreshing = false;
             }
         }
 
@@ -149,6 +171,24 @@ public class MainActivity extends AppCompatActivity{
             Log.i("aa",t.getMessage());
         }
     }
+
+    private final class LoadMoreCallback implements Callback<Articals>{
+
+        @Override
+        public void onResponse(Call<Articals> call,Response<Articals> response) {
+            mArticals.getData().addAll(response.body().getData());
+            mArticals.setCurrentCount(mArticals.getCurrentCount()+PAGE_SIZE);
+            mArticals.setCurrentPage(response.body().getCurrentPage());
+            mRecyclerAdapter.notifyDataSetChanged();
+            mIsLoadingMore = false;
+        }
+
+        @Override
+        public void onFailure(Call<Articals> call,Throwable t) {
+            Log.i("aa",t.getMessage());
+        }
+    }
+
     public class MainRecyclerViewAdapter extends RecyclerView.Adapter<MainRecyclerViewAdapter.ViewHolder>{
         //创建新View，被LayoutManager所调用
         @Override
@@ -207,6 +247,5 @@ public class MainActivity extends AppCompatActivity{
             outRect.set(0, 0, 0, 8);
         }
     }
-
 
 }

@@ -19,7 +19,5 @@ public interface NetApi {
 
     @GET("admin-ajax.php?action=get_posts_by_page_json&source=mobile")
     Call<com.example.mi.rockerfm.JsonBeans.Articals> mainArticals(@Query("pageIndex") int pageIndex, @Query("limit") int limit);
-  /*  @GET("geocoding?a=苏州市")
-    Call<com.example.mi.rockerfm.JsonBeans.Articals> articals1();*/
 
 }

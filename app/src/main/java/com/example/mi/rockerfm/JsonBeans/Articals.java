@@ -1,11 +1,12 @@
 package com.example.mi.rockerfm.JsonBeans;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by qin on 2016/4/16.
  */
-public class Articals {
+public class Articals implements Serializable{
     public int getTotalCount() {
         return totalCount;
     }
@@ -31,6 +32,14 @@ public class Articals {
     }
 
 
+    public void setCurrentCount(int currentCount) {
+        this.currentCount = currentCount;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
     private int totalCount;
     private int currentCount;
     private int limit;
@@ -38,7 +47,7 @@ public class Articals {
     private int currentPage;
     private List<Artical> data;
 
-    public static class Artical{
+    public static class Artical implements Serializable{
         public String getPermalink() {
             return permalink;
         }
