@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity{
                     mIsFreshing = false;
                 }
             } else {
-                call = Net.getmApi().mainArticals(1, response.body().getCurrentCount() - mArticals.getTotalCount());
+                call = Net.getmApi().mainArticals(1, response.body().getCurrentCount() - mArticals.getCurrentCount());
                 call.enqueue(new RefreshingCallback());
             }
         }
