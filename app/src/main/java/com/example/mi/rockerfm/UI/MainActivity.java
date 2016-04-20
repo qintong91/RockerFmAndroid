@@ -256,6 +256,7 @@ public class MainActivity extends AppCompatActivity{
             viewHolder.mTitleTextView.setText(mArticals.getData().get(position).getTitleAttr());
             viewHolder.mImageView.setImageURI(Uri.parse(mArticals.getData().get(position).getCover()));
             viewHolder.mAuthorTextView.setText(mArticals.getData().get(position).getAuthor().getNickname());
+            viewHolder.mTypeTextView.setText(mArticals.getData().get(position).getCategaryMarkClassname());
 
         }
         //获取数据的数量
@@ -270,16 +271,18 @@ public class MainActivity extends AppCompatActivity{
             public TextView mTitleTextView;
             public SimpleDraweeView mImageView;
             public TextView mAuthorTextView;
+            public TextView mTypeTextView;
             public ViewHolder(View view){
                 super(view);
                 mTitleTextView = (TextView) view.findViewById(R.id.text_title);
                 mImageView = (SimpleDraweeView)view.findViewById(R.id.image);
                 mAuthorTextView = (TextView) view.findViewById(R.id.text_author);
+                mTypeTextView = (TextView) view.findViewById(R.id.text_type);
                 view.setOnClickListener(this);
             }
             @Override
             public void onClick(View v) {
-                EventBus.getDefault().postSticky(mArticals.getData().get(getAdapterPosition()));
+                EventBus.getDefault().postSticky(mArticals.getData().get(getAdapterPosition()).getPermalink());
                 Intent intent = new Intent(MainActivity.this,ArticleActivity.class);
                 startActivity(intent);
             }

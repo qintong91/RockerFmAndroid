@@ -71,12 +71,16 @@ public class Articals implements Serializable{
         public String getCover() {
             return cover;
         }
+
+        public String getCategaryMarkClassname() { return categaryMarkClassname; }
+
         private Author author;
         private String permalink;
         private String titleAttr;
         private String topCategory;
         private String subCategoryName;
         private String cover;
+        private String categaryMarkClassname;
         //private String time;
     }
 

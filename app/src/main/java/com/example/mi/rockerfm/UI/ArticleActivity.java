@@ -46,8 +46,8 @@ public class ArticleActivity extends Activity {
         super.onDestroy();
     }
     @Subscribe(sticky = true, threadMode = ThreadMode.MainThread)
-    public void onEvent(Articals.Artical event) {
-        mUrl = event.getHref();
+    public void onEvent(String event) {
+        mUrl = event;
         if(mWebView != null){
             mWebView.loadUrl(mUrl);
         }
