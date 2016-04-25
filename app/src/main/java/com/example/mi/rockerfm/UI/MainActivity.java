@@ -282,7 +282,7 @@ public class MainActivity extends AppCompatActivity{
             }
             @Override
             public void onClick(View v) {
-                EventBus.getDefault().postSticky(mArticals.getData().get(getAdapterPosition()).getPermalink());
+                EventBus.getDefault().postSticky(mArticals.getData().get(getAdapterPosition()));
                 Intent intent = new Intent(MainActivity.this,ArticleActivity.class);
                 startActivity(intent);
             }
