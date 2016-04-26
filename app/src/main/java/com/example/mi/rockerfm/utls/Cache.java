@@ -19,9 +19,11 @@ public class Cache {
 
     private static File mBuffDir;
     private static final String MAIN_ARTICAL_LIST = "Main_Artical_List";
+
     public static void initialize(Context context) {
-        mBuffDir = context.getCacheDir() ;
+        mBuffDir = context.getCacheDir();
     }
+
     public static void putArticalList(Articals articals) {
         ObjectOutputStream oos = null;
         try {
@@ -43,7 +45,7 @@ public class Cache {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             if (oos != null) {
                 try {
                     oos.close();
@@ -53,7 +55,8 @@ public class Cache {
             }
         }
     }
-    public static Articals getArticalList(){
+
+    public static Articals getArticalList() {
         ObjectInputStream in = null;
         try {
             File file = new File(mBuffDir, MAIN_ARTICAL_LIST);
