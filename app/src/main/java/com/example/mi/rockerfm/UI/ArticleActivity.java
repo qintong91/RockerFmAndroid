@@ -10,7 +10,6 @@ import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.mi.rockerfm.JsonBeans.Articals;
@@ -20,7 +19,6 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -43,6 +41,7 @@ public class ArticleActivity extends Activity {
     private static final String HTML_HEAD = "<head><style>img{max-width:100% ; height:auto !important;}</style></head>\n";
     private WebSettings mWebSettings;
     private Articals.Artical mArtical;
+    long olｄTime;
     @Bind(R.id.article_webview)
     WebView mWebView;
     @Bind(R.id.tv_title)
@@ -89,6 +88,7 @@ public class ArticleActivity extends Activity {
     }
     @Subscribe(sticky = true, threadMode = ThreadMode.MainThread)
     public void onEvent(Articals.Artical event) {
+        olｄTime = System.currentTimeMillis();
         mArtical = event;
         if(mWebView != null){
             mTvTitle.setText(mArtical.getTitleAttr());
