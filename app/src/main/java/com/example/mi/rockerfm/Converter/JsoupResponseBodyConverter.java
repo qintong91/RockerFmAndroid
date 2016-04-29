@@ -2,21 +2,18 @@ package com.example.mi.rockerfm.Converter;
 
 import android.util.Log;
 
-import com.example.mi.rockerfm.beans.Articals;
-import com.squareup.okhttp.ResponseBody;
+import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
 
-import retrofit.Converter;
+import okhttp3.ResponseBody;
+import retrofit2.Converter;
 
 /**
  * Created by qintong on 16-1-25.
@@ -28,55 +25,50 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
    /* JsoupResponseBodyConverter() {
         elementClass = null;
     }*/
+    private static final String PIC_SRC = "src";
+    private static final String PIC_ORG = "data-original";
+    private static final String HTML_HEAD = "<head><style>img{max-width:100% ; height:auto !important;}</style></head>\n";
 
     JsoupResponseBodyConverter(Type type) {
         elementClass = (Class)type;
         this.mType = type;
-
     }
 
     @Override
     public T convert(ResponseBody value) throws IOException {
         try { Class classType = null;
 
-            classType = Class.forName("com.example.mi.rockerfm.beans.Articals");
+            classType = Class.forName("com.example.mi.rockerfm.JsonBeans.ArticleContent");
             Object obj = classType.newInstance();
 
             Log.i("~~~",elementClass.toString());
-         if (elementClass == Articals.class) {
+         if (elementClass == ArticleContent.class) {
 
-                Articals articals = (Articals) obj;
+             ArticleContent articalsContent = (ArticleContent) obj;
                 Document document = Jsoup.parse(value.string());
-                Elements contents = document.select(".posts-main").select("article");
-                Field fieldArticalList = elementClass.getDeclaredField("articalList");
-                List<Articals.Artical> list = new ArrayList<Articals.Artical>();
-                fieldArticalList.set(articals,list);
-                for (int i = 0; i < contents.size(); i++) {
-                    Articals.Artical objArtical = new Articals.Artical();
-                    objArtical.setId(contents.get(i).attr("id"));
-                    objArtical.setTitle(contents.get(i).getElementsByTag("a").attr("title"));
-                    objArtical.setHref(contents.get(i).getElementsByTag("a").attr("href"));
-                    objArtical.setImgHref(contents.get(i).getElementsByTag("img").attr("src"));
-                    objArtical.setIndexIntro(contents.get(i).getElementsByTag("img").attr("alt"));
-                    objArtical.setType(contents.get(i).getElementsByTag("i").attr("class"));
-                    objArtical.setAuthor(contents.get(i).getElementsByClass("author").text());
-                    Elements labelElements = contents.get(i).getElementsByClass("label");
-                    if(labelElements.size()>=1){
-                        Elements labelStringElements = labelElements.get(0).getElementsByTag("a");
-                        String[] tagStrings = new String[labelStringElements.size()];
-                        for(int j=0;j<labelStringElements.size();j++){
-                            tagStrings[j] = labelStringElements.get(j).text();
-                        }
-                        objArtical.setLabel(tagStrings);
-                    }
-                    list.add(objArtical);
-                }
-             mObj = articals;
+             Element element = document.select("div.entry-content").select(".noselect").select(".entry-topic").first();
+             Elements elementsImg = element.select("img");
+             for (int i = 0; i < elementsImg.size(); i++) {
+                 Element e = elementsImg.get(i);
+                 e.attr(PIC_SRC, e.attr(PIC_ORG));
+                 e.removeAttr(PIC_ORG);
+             }
+             Elements elementsMusic = element.select("img");
+             for (int i = 0; i < elementsMusic.size(); i++) {
+                 Element e = elementsMusic.get(i);
+                 e.attr(PIC_SRC, e.attr(PIC_ORG));
+                 e.removeAttr(PIC_ORG);
+             }
+             articalsContent.setContentHtml(getHtmlWithPicSrc(element.html()));
     }
 
     } catch (Exception e) {
         e.printStackTrace();
     }
     return (T) mObj;
+    }
+    private static String getHtmlWithPicSrc(String originalHtml) {
+        String s = HTML_HEAD + originalHtml;
+        return (s);
     }
 }

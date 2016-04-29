@@ -4,9 +4,7 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -16,26 +14,26 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.mi.rockerfm.JsonBeans.Articles;
 import com.example.mi.rockerfm.R;
-import com.example.mi.rockerfm.JsonBeans.Articals;
 import com.example.mi.rockerfm.utls.Cache;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import butterknife.Bind;
 import butterknife.ButterKnife;
 import de.greenrobot.event.EventBus;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import butterknife.Bind;
 
 public class MainActivity extends AppCompatActivity {
     @Bind(R.id.recyclerView) RecyclerView mRecyclerview;
@@ -44,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     @Bind(R.id.fab)FloatingActionButton mFab;
     private LinearLayoutManager mLayoutManager;
     private RecyclerView.Adapter mRecyclerAdapter;
-    private Articals mArticals;
+    private Articles mArticles;
     private boolean mIsFreshing;
     private boolean mIsLoadingMore;
     private static final int PAGE_SIZE = 10;
@@ -73,11 +71,11 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        mArticals = Cache.getArticalList();
+        mArticles = Cache.getArticleList();
         if (isListEmpty()) {
-            //Call<Articals> call = Net.getmApi().articals();
-            Call<Articals> call = Net.getmApi().mainArticals(1, PAGE_SIZE);
-            call.enqueue(new ArticalListCallback());
+            //Call<Articles> call = Net.getmApi().Articles();
+            Call<Articles> call = Net.getmApi().mainArticles(1, PAGE_SIZE);
+            call.enqueue(new ArticleListCallback());
         }
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -85,9 +83,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("aa", "invoke onRefresh...");
                 mIsFreshing = true;
                 refresh();
-               /* Call<Articals> call = Net.getmApi().mainArticals(1, PAGE_SIZE);
+               /* Call<Articles> call = Net.getmApi().mainArticles(1, PAGE_SIZE);
                 mIsFreshing = true;
-                call.enqueue(new ArticalListCallback());*/
+                call.enqueue(new ArticleListCallback());*/
             }
         });
         //mSwipeRefreshLayout.setRefreshing(true);
@@ -112,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!mIsLoadingMore) {
                     if (visibleItemCount + firstVisibleItem >= totalItemCount) {
                         mIsLoadingMore = true;
-                        Call<Articals> call = Net.getmApi().mainArticals(mArticals.getCurrentPage() + 1, PAGE_SIZE);
+                        Call<Articles> call = Net.getmApi().mainArticles(mArticles.getCurrentPage() + 1, PAGE_SIZE);
                         call.enqueue(new LoadMoreCallback());
                         Log.e("aaaa", "loading ");
                     }
@@ -124,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        if (mArticals != null && mArticals.getCurrentCount() != 0) {
-            Cache.putArticalList(mArticals);
+        if (mArticles != null && mArticles.getCurrentCount() != 0) {
+            Cache.putArticleList(mArticles);
         }
     }
 
@@ -151,12 +149,12 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private final class ArticalListCallback implements Callback<Articals> {
+    private final class ArticleListCallback implements Callback<Articles> {
 
         @Override
-        public void onResponse(Call<Articals> call, Response<Articals> response) {
+        public void onResponse(Call<Articles> call, Response<Articles> response) {
             if (isListEmpty()) {
-                mArticals = response.body();
+                mArticles = response.body();
             } else {
 
             }
@@ -168,61 +166,61 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onFailure(Call<Articals> call, Throwable t) {
+        public void onFailure(Call<Articles> call, Throwable t) {
             setNetRequestFailure();
             Log.i("aa", t.getMessage());
         }
     }
 
-    private final class LoadMoreCallback implements Callback<Articals> {
+    private final class LoadMoreCallback implements Callback<Articles> {
 
         @Override
-        public void onResponse(Call<Articals> call, Response<Articals> response) {
-            mArticals.getData().addAll(response.body().getData());
-            mArticals.setCurrentCount(mArticals.getCurrentCount() + PAGE_SIZE);
-            mArticals.setCurrentPage(response.body().getCurrentPage());
+        public void onResponse(Call<Articles> call, Response<Articles> response) {
+            mArticles.getData().addAll(response.body().getData());
+            mArticles.setCurrentCount(mArticles.getCurrentCount() + PAGE_SIZE);
+            mArticles.setCurrentPage(response.body().getCurrentPage());
             mRecyclerAdapter.notifyDataSetChanged();
             mIsLoadingMore = false;
         }
 
         @Override
-        public void onFailure(Call<Articals> call, Throwable t) {
+        public void onFailure(Call<Articles> call, Throwable t) {
             setNetRequestFailure();
             Log.i("aa", t.getMessage());
         }
     }
 
-    private final class IfRefreshingCallback implements Callback<Articals> {
+    private final class IfRefreshingCallback implements Callback<Articles> {
 
         @Override
-        public void onResponse(Call<Articals> call, Response<Articals> response) {
+        public void onResponse(Call<Articles> call, Response<Articles> response) {
 
-            if (mArticals.getTotalCount() >= response.body().getTotalCount()) {
+            if (mArticles.getTotalCount() >= response.body().getTotalCount()) {
                 Toast.makeText(MainActivity.this, "已经是最新了", Toast.LENGTH_LONG).show();
                 if (mIsFreshing) {
                     mSwipeRefreshLayout.setRefreshing(false);
                     mIsFreshing = false;
                 }
             } else {
-                call = Net.getmApi().mainArticals(1, response.body().getTotalCount() - mArticals.getTotalCount());
+                call = Net.getmApi().mainArticles(1, response.body().getTotalCount() - mArticles.getTotalCount());
                 call.enqueue(new RefreshingCallback());
             }
         }
 
         @Override
-        public void onFailure(Call<Articals> call, Throwable t) {
+        public void onFailure(Call<Articles> call, Throwable t) {
             setNetRequestFailure();
             Log.i("aa", t.getMessage());
         }
     }
 
-    private final class RefreshingCallback implements Callback<Articals> {
+    private final class RefreshingCallback implements Callback<Articles> {
 
         @Override
-        public void onResponse(Call<Articals> call, Response<Articals> response) {
-            response.body().getData().addAll(mArticals.getData());
-            response.body().setCurrentCount(mArticals.getCurrentCount() + response.body().getCurrentCount());
-            mArticals = response.body();
+        public void onResponse(Call<Articles> call, Response<Articles> response) {
+            response.body().getData().addAll(mArticles.getData());
+            response.body().setCurrentCount(mArticles.getCurrentCount() + response.body().getCurrentCount());
+            mArticles = response.body();
             mRecyclerAdapter.notifyDataSetChanged();
             if (mIsFreshing) {
                 mSwipeRefreshLayout.setRefreshing(false);
@@ -231,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onFailure(Call<Articals> call, Throwable t) {
+        public void onFailure(Call<Articles> call, Throwable t) {
             setNetRequestFailure();
             Log.i("aa", t.getMessage());
         }
@@ -250,18 +248,18 @@ public class MainActivity extends AppCompatActivity {
         //将数据与界面进行绑定的操作
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, int position) {
-            viewHolder.mTitleTextView.setText(mArticals.getData().get(position).getTitleAttr());
-            viewHolder.mImageView.setImageURI(Uri.parse(mArticals.getData().get(position).getCover()));
-            viewHolder.mAuthorTextView.setText(mArticals.getData().get(position).getAuthor().getNickname());
-            viewHolder.mTypeTextView.setText(mArticals.getData().get(position).getCategaryMarkClassname());
+            viewHolder.mTitleTextView.setText(mArticles.getData().get(position).getTitleAttr());
+            viewHolder.mImageView.setImageURI(Uri.parse(mArticles.getData().get(position).getCover()));
+            viewHolder.mAuthorTextView.setText(mArticles.getData().get(position).getAuthor().getNickname());
+            viewHolder.mTypeTextView.setText(mArticles.getData().get(position).getCategaryMarkClassname());
 
         }
 
         //获取数据的数量
         @Override
         public int getItemCount() {
-            //return mArticals == null ? 0:mArticals.articalList.size();
-            return mArticals == null ? 0 : mArticals.getCurrentCount();
+            //return mArticles == null ? 0:mArticles.ArticleList.size();
+            return mArticles == null ? 0 : mArticles.getCurrentCount();
         }
 
         //自定义的ViewHolder，持有每个Item的的所有界面元素
@@ -283,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                EventBus.getDefault().postSticky(mArticals.getData().get(getAdapterPosition()));
+                EventBus.getDefault().postSticky(mArticles.getData().get(getAdapterPosition()));
                 Intent intent = new Intent(MainActivity.this, ArticleActivity.class);
                 startActivity(intent);
             }
@@ -308,17 +306,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isListEmpty() {
-        return (mArticals == null || mArticals.getCurrentCount() == 0);
+        return (mArticles == null || mArticles.getCurrentCount() == 0);
     }
 
     private void refresh() {
-        Call<Articals> call = null;
+        Call<Articles> call = null;
         if (isListEmpty()) {
-            //Call<Articals> call = Net.getmApi().articals();
-            call = Net.getmApi().mainArticals(1, PAGE_SIZE);
-            call.enqueue(new ArticalListCallback());
+            //Call<Articles> call = Net.getmApi().Articles();
+            call = Net.getmApi().mainArticles(1, PAGE_SIZE);
+            call.enqueue(new ArticleListCallback());
         } else {
-            call = Net.getmApi().mainArticals(1, 1);
+            call = Net.getmApi().mainArticles(1, 1);
             call.enqueue(new IfRefreshingCallback());
         }
     }

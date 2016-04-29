@@ -1,10 +1,8 @@
 package com.example.mi.rockerfm.utls;
 
 import com.example.mi.rockerfm.Converter.HtmlConverterFactory;
-import com.example.mi.rockerfm.beans.Articals;
 
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
@@ -14,6 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 * */
 public class Net {
     private  static NetApi mApi;
+    private static NetContentApi mContentApi;
     //static final String BASIC_URL = "http://www.jammyfm.com/";
     static final String BASIC_URL = "http://www.jammyfm.com/wordpress/wp-admin/";
     //static final String BASIC_URL = "http://gc.ditu.aliyun.com/";
@@ -22,11 +21,20 @@ public class Net {
             //Retrofit retrofit = new Retrofit.Builder().baseUrl(BASIC_URL).addConverterFactory(HtmlConverterFactory.create()).build();
             Retrofit retrofit = new Retrofit.Builder().baseUrl(BASIC_URL)
                     .addConverterFactory(GsonConverterFactory.create())
-                    //.addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                     .build();
             mApi = retrofit.create(NetApi.class);
         }
         return mApi;
+    }
+    public static NetContentApi getContentApi(){
+        if(mContentApi == null){
+            //Retrofit retrofit = new Retrofit.Builder().baseUrl(BASIC_URL).addConverterFactory(HtmlConverterFactory.create()).build();
+            Retrofit retrofit = new Retrofit.Builder().baseUrl("")
+                    .addConverterFactory(HtmlConverterFactory.create())
+                    .build();
+            mContentApi = retrofit.create(NetContentApi.class);
+        }
+        return mContentApi;
     }
 
 }

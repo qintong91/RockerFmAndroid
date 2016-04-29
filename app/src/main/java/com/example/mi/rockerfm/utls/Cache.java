@@ -2,7 +2,7 @@ package com.example.mi.rockerfm.utls;
 
 import android.content.Context;
 
-import com.example.mi.rockerfm.JsonBeans.Articals;
+import com.example.mi.rockerfm.JsonBeans.Articles;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,17 +18,17 @@ import java.io.ObjectOutputStream;
 public class Cache {
 
     private static File mBuffDir;
-    private static final String MAIN_ARTICAL_LIST = "Main_Artical_List";
+    private static final String MAIN_ARTICLE_LIST = "Main_article_List";
 
     public static void initialize(Context context) {
         mBuffDir = context.getCacheDir();
     }
 
-    public static void putArticalList(Articals articals) {
+    public static void putArticleList(Articles articles) {
         ObjectOutputStream oos = null;
         try {
             // 打开文件
-            File file = new File(mBuffDir, MAIN_ARTICAL_LIST);
+            File file = new File(mBuffDir, MAIN_ARTICLE_LIST);
             if (file.exists()) {
                 file.delete();
             }
@@ -36,7 +36,7 @@ public class Cache {
             FileOutputStream fos = new FileOutputStream(file);
             // 将数据写入文件
             oos = new ObjectOutputStream(fos);
-            oos.writeObject(articals);
+            oos.writeObject(articles);
 
             // 释放资源
             oos.close();
@@ -56,16 +56,16 @@ public class Cache {
         }
     }
 
-    public static Articals getArticalList() {
+    public static Articles getArticleList() {
         ObjectInputStream in = null;
         try {
-            File file = new File(mBuffDir, MAIN_ARTICAL_LIST);
+            File file = new File(mBuffDir, MAIN_ARTICLE_LIST);
             if (!file.exists()) {
                 return null;
             }
             FileInputStream fileIn = new FileInputStream(file);
             in = new ObjectInputStream(fileIn);
-            return (Articals) in.readObject();
+            return (Articles) in.readObject();
         } catch (Exception e) {
             e.printStackTrace();
             return null;

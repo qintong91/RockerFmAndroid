@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by qin on 2016/4/16.
  */
-public class Articals implements Serializable{
+public class Articles implements Serializable{
     public int getTotalCount() {
         return totalCount;
     }
@@ -27,7 +27,7 @@ public class Articals implements Serializable{
         return currentPage;
     }
 
-    public List<Artical> getData() {
+    public List< Article> getData() {
         return data;
     }
 
@@ -45,9 +45,9 @@ public class Articals implements Serializable{
     private int limit;
     private int totalPage;
     private int currentPage;
-    private List<Artical> data;
+    private List<Article> data;
 
-    public static class Artical implements Serializable{
+    public static class Article implements Serializable{
         public String getPermalink() {
             return permalink;
         }

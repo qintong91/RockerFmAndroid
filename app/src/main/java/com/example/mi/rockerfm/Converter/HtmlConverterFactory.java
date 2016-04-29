@@ -1,12 +1,12 @@
 package com.example.mi.rockerfm.Converter;
 
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.ResponseBody;
+import okhttp3.ResponseBody;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import retrofit.Converter;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
 
 /**
  * Created by qintong on 16-1-25.
@@ -21,12 +21,8 @@ public class HtmlConverterFactory extends Converter.Factory {
     }
 
     @Override
-    public Converter<ResponseBody, ?> fromResponseBody(Type type, Annotation[] annotations) {
-                return new JsoupResponseBodyConverter<Type>( type);
-    }
-
-    @Override
-    public Converter<?, RequestBody> toRequestBody(Type type, Annotation[] annotations) {
-        return null;
+    public Converter<okhttp3.ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations,
+                                                                    Retrofit retrofit) {
+        return new JsoupResponseBodyConverter<Type>( type);
     }
 }
