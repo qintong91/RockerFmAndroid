@@ -74,6 +74,10 @@ public class Articles implements Serializable{
 
         public String getCategaryMarkClassname() { return categaryMarkClassname; }
 
+        public String getId() {
+            return id;
+        }
+
         private Author author;
         private String permalink;
         private String titleAttr;
@@ -81,6 +85,7 @@ public class Articles implements Serializable{
         private String subCategoryName;
         private String cover;
         private String categaryMarkClassname;
+        private String id;
         //private String time;
     }
 

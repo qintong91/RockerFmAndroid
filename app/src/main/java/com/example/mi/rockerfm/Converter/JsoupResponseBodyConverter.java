@@ -39,25 +39,25 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
         try { Class classType = null;
 
             classType = Class.forName("com.example.mi.rockerfm.JsonBeans.ArticleContent");
-            Object obj = classType.newInstance();
+             mObj = classType.newInstance();
 
             Log.i("~~~",elementClass.toString());
          if (elementClass == ArticleContent.class) {
 
-             ArticleContent articalsContent = (ArticleContent) obj;
+             ArticleContent articalsContent = (ArticleContent) mObj;
                 Document document = Jsoup.parse(value.string());
              Element element = document.select("div.entry-content").select(".noselect").select(".entry-topic").first();
              Elements elementsImg = element.select("img");
              for (int i = 0; i < elementsImg.size(); i++) {
                  Element e = elementsImg.get(i);
-                 e.attr(PIC_SRC, e.attr(PIC_ORG));
-                 e.removeAttr(PIC_ORG);
+                 //e.attr(PIC_SRC, e.attr(PIC_ORG));
+                 //e.removeAttr(PIC_ORG);
              }
              Elements elementsMusic = element.select("img");
              for (int i = 0; i < elementsMusic.size(); i++) {
-                 Element e = elementsMusic.get(i);
+                /* Element e = elementsMusic.get(i);
                  e.attr(PIC_SRC, e.attr(PIC_ORG));
-                 e.removeAttr(PIC_ORG);
+                 e.removeAttr(PIC_ORG);*/
              }
              articalsContent.setContentHtml(getHtmlWithPicSrc(element.html()));
     }
@@ -69,6 +69,6 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     }
     private static String getHtmlWithPicSrc(String originalHtml) {
         String s = HTML_HEAD + originalHtml;
-        return (s);
+        return  (s.replaceAll(PIC_ORG,PIC_SRC));
     }
 }

@@ -13,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class Net {
     private  static NetApi mApi;
     private static NetContentApi mContentApi;
-    //static final String BASIC_URL = "http://www.jammyfm.com/";
+    static final String ARTICLE_BASIC_URL = "http://www.jammyfm.com/";
     static final String BASIC_URL = "http://www.jammyfm.com/wordpress/wp-admin/";
     //static final String BASIC_URL = "http://gc.ditu.aliyun.com/";
     public static NetApi getmApi(){
@@ -29,7 +29,7 @@ public class Net {
     public static NetContentApi getContentApi(){
         if(mContentApi == null){
             //Retrofit retrofit = new Retrofit.Builder().baseUrl(BASIC_URL).addConverterFactory(HtmlConverterFactory.create()).build();
-            Retrofit retrofit = new Retrofit.Builder().baseUrl("")
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(ARTICLE_BASIC_URL)
                     .addConverterFactory(HtmlConverterFactory.create())
                     .build();
             mContentApi = retrofit.create(NetContentApi.class);

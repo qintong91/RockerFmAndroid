@@ -88,7 +88,7 @@ public class ArticleActivity extends Activity {
         olｄTime = System.currentTimeMillis();
         mArticle = event;
         if (mWebView != null) {
-            Call<ArticleContent> call = Net.getContentApi().articleContent(mArticle.getPermalink());
+            Call<ArticleContent> call = Net.getContentApi().articleContent(mArticle.getId());
             call.enqueue(new ContentCallback());
             mTvTitle.setText(mArticle.getTitleAttr());
             mTvAuthor.setText(mArticle.getAuthor().getNickname());
