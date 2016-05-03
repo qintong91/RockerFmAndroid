@@ -10,18 +10,18 @@ public class ArticleContent implements Serializable {
         return ContentHtml;
     }
 
-    public Music[] getMusic() {
-        return music;
+    public Songs[] getSongs() {
+        return Songs;
     }
 
     public void setContentHtml(String contentHtml) {
         ContentHtml = contentHtml;
     }
 
-    public void setMusic(Music[] music) {
-        this.music = music;
+    public void setMusic(Songs[] music) {
+        this.Songs = music;
     }
 
     private String ContentHtml;
-    private Music[] music;
+    private Songs[] Songs;
 }

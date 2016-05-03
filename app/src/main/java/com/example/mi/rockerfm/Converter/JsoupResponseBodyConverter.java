@@ -25,9 +25,10 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     /* JsoupResponseBodyConverter() {
          elementClass = null;
      }*/
-    private static final String PIC_SRC = "src";
+    private static final String SRC = "src";
+    private static final String ID = "id";
     private static final String PIC_ORG = "data-original";
-    private static final String HTML_HEAD = "<head><style>img{max-width:100% ; height:auto ; display:block !important;}</style></head>\n";
+    private static final String HTML_HEAD = "<head><style>img{max-width:100% ; height:auto ; text-align:center  !important;}</style></head>\n";
 
     JsoupResponseBodyConverter(Type type) {
         elementClass = (Class) type;
@@ -51,14 +52,12 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
                 Elements elementsImg = element.select("img");
                 for (int i = 0; i < elementsImg.size(); i++) {
                     Element e = elementsImg.get(i);
-                    e.attr(PIC_SRC, e.attr(PIC_ORG));
-                    e.removeAttr(PIC_ORG);
+                    e.attr(SRC, e.attr(PIC_ORG));
                 }
-                Elements elementsMusic = element.select("img");
-               /* for (int i = 0; i < elementsMusic.size(); i++) {
-                    Element e = elementsMusic.get(i);
-                    e.attr(PIC_SRC, e.attr(PIC_ORG));
-                    e.removeAttr(PIC_ORG);
+               /* Elements elementsSong = element.select("iframe");
+                for (int i = 0; i < elementsSong.size(); i++) {
+                    Element e = elementsSong.get(i);
+                    String id = e.attr(ID);
                 }*/
                 articalsContent.setContentHtml(getHtmlWithPicSrc(element.html()));
             }
@@ -71,6 +70,6 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
 
     private static String getHtmlWithPicSrc(String originalHtml) {
         String s = HTML_HEAD + originalHtml;
-        return (s.replaceAll(PIC_ORG, PIC_SRC));
+        return s;
     }
 }

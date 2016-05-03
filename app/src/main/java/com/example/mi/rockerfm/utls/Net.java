@@ -13,8 +13,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class Net {
     private  static NetApi mApi;
     private static NetContentApi mContentApi;
+    private static NetSongsApi mSongsApi;
     static final String ARTICLE_BASIC_URL = "http://www.jammyfm.com/";
     static final String BASIC_URL = "http://www.jammyfm.com/wordpress/wp-admin/";
+    static final String SONGS_BASIC_URL = "http://music.163.com/api/";
     //static final String BASIC_URL = "http://gc.ditu.aliyun.com/";
     public static NetApi getmApi(){
         if(mApi == null){
@@ -35,6 +37,15 @@ public class Net {
             mContentApi = retrofit.create(NetContentApi.class);
         }
         return mContentApi;
+    }
+    public static NetSongsApi getSongsApi(){
+        if(mSongsApi == null){
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(SONGS_BASIC_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            mSongsApi = retrofit.create(NetSongsApi.class);
+        }
+        return mSongsApi;
     }
 
 }
