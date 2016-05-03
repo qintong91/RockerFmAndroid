@@ -1,8 +1,8 @@
 package com.example.mi.rockerfm.utls;
 
 import retrofit2.Call;
-import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
 import retrofit2.http.Path;
 
 /**
@@ -10,8 +10,7 @@ import retrofit2.http.Path;
  */
 
 public interface NetContentApi {
-
-    @GET("/{path}")
-    Call<com.example.mi.rockerfm.JsonBeans.ArticleContent> articleContent(@Path("path") String path);
+    @GET("/{id}")
+    Call<com.example.mi.rockerfm.JsonBeans.ArticleContent> articleContent(@Path("id") String id, @Header("User-Agent") String userAgent);
 
 }
