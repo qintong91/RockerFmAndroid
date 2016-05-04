@@ -1,6 +1,7 @@
 package com.example.mi.rockerfm.JsonBeans;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  * Created by qintong on 16-4-27.
@@ -10,18 +11,19 @@ public class ArticleContent implements Serializable {
         return ContentHtml;
     }
 
-    public Songs[] getSongs() {
-        return Songs;
+    public HashMap<String,SongDetial.Song> getSongsMap() {
+        return songsMap;
     }
 
     public void setContentHtml(String contentHtml) {
         ContentHtml = contentHtml;
     }
 
-    public void setMusic(Songs[] music) {
-        this.Songs = music;
+    public void setSongsMap(HashMap<String,SongDetial.Song> songs) {
+        songsMap = songs;
     }
 
     private String ContentHtml;
-    private Songs[] Songs;
+
+    private HashMap<String,SongDetial.Song> songsMap;
 }
