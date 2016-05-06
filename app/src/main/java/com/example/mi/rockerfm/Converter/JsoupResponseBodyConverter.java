@@ -1,5 +1,6 @@
 package com.example.mi.rockerfm.Converter;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.example.mi.rockerfm.JsonBeans.ArticleContent;
@@ -37,7 +38,15 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     private static final String ID = "id";
     private static final String PIC_ORG = "data-original";
     private static final String HTML_HEAD = "<head><style>img{max-width:100% ; height:auto ; text-align:center  !important;}</style></head>\n";
-    ArticleContent mArticalsContent;
+    private static final String MUSIC_HTML_STRING = "<div class=\"info\">\n" +
+            "<div class=\"iner\">\n" +
+            "<p class=\"title\"><a href=\"/song?id=33668985\">美若黎明</a></p>\n" +
+            "<p class=\"artist\"><span title=\"李健\"><a class=\"s-fc3\" href=\"/artist?id=3695\">李健</a></span></p>\n" +
+            "</div>\n" +
+            "</div>";
+    private static final String MUSIC_URL = "http://music.163.com/";
+    private ArticleContent mArticlesContent;
+    private HashMap<String,Element> mSongsElementMap;
     JsoupResponseBodyConverter(Type type) {
         elementClass = (Class) type;
         this.mType = type;
@@ -54,30 +63,40 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             Log.i("~~~", elementClass.toString());
             if (elementClass == ArticleContent.class) {
 
-                mArticalsContent = (ArticleContent) mObj;
+                mArticlesContent = (ArticleContent) mObj;
                 Document document = Jsoup.parse(value.string());
                 Element element = document.select("div.entry-content").select(".noselect").select(".entry-topic").first();
                 Elements elementsImg = element.select("img");
-                for (int i = 0; i < elementsImg.size(); i++) {
-                    Element e = elementsImg.get(i);
-                    e.attr(SRC, e.attr(PIC_ORG));
+                if(elementsImg != null && elementsImg.size()>0) {
+                    for (int i = 0; i < elementsImg.size(); i++) {
+                        Element e = elementsImg.get(i);
+                        e.attr(SRC, e.attr(PIC_ORG));
+                    }
                 }
                 Elements elementsSong = element.select("iframe");
-                mArticalsContent.setSongsMap(new HashMap<String, SongDetial.Song>((int)Math.ceil(elementsSong.size()/0.75)));
-                for (int i = 0; i < elementsSong.size(); i++) {
-                    Element e = elementsSong.get(i);
-                    String src = e.attr(SRC);
-                    Matcher m = Pattern.compile("(?<=id=)(\\d+)").matcher(src);
-                    String id = null;
-                    while(m.find()){
-                        id =m.group();
-                        break;
+                if (elementsSong != null && elementsSong.size() > 0) {
+                    mArticlesContent.setSongsMap(new HashMap<String, SongDetial.Song>((int) Math.ceil(elementsSong.size() / 0.75)));
+                    mSongsElementMap = new HashMap<String, Element>((int) Math.ceil(elementsSong.size() / 0.75));
+                    for (int i = elementsSong.size() - 1; i >= 0; i--) {
+                        Element e = elementsSong.get(i);
+                        String src = e.attr(SRC);
+                        if (TextUtils.isEmpty(src) || !src.contains(MUSIC_URL))
+                            continue;
+                        Matcher m = Pattern.compile("(?<=id=)(\\d+)").matcher(src);
+                        String id = null;
+                        while (m.find()) {
+                            id = m.group();
+                            break;
+                        }
+                        Call<SongDetial> call = Net.getSongsApi().songDitials(id, "[" + id + "]");
+                        call.enqueue(new LoadSongsDitialCallBack());
+                        e.before(MUSIC_HTML_STRING);
+                        mSongsElementMap.put(id,e.parent().getElementsByClass("info").first());
+                        e.remove();
                     }
-                    Call<SongDetial> call = Net.getSongsApi().songDitials(id, "[" + id + "]");
-                    call.enqueue(new LoadSongsDitialCallBack());
-
                 }
-                mArticalsContent.setContentHtml(getHtmlWithPicSrc(element.html()));
+
+                mArticlesContent.setContentHtml(getHtmlWithPicSrc(element.html()));
             }
 
         } catch (Exception e) {
@@ -94,8 +113,12 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
 
         @Override
         public void onResponse(Call<SongDetial> call, Response<SongDetial> response) {
-            if(mArticalsContent !=null &&mArticalsContent.getSongsMap()!=null){
-                mArticalsContent.getSongsMap().put(response.body().getSong().getId(),response.body().getSong());
+            if(mArticlesContent !=null &&mArticlesContent.getSongsMap()!=null &&response.body().getSong()!=null){
+                SongDetial.Song song =response.body().getSong();
+                Element element = mSongsElementMap.get(song.getId());
+                mArticlesContent.getSongsMap().put(song.getId(), response.body().getSong());
+                element.getElementsByClass("title").first().text(song.getName());
+                element.getElementsByClass("artist").first().text(song.getName());
             }
         }
 
