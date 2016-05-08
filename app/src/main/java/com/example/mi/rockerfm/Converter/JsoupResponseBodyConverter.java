@@ -37,12 +37,16 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     private static final String SRC = "src";
     private static final String ID = "id";
     private static final String PIC_ORG = "data-original";
-    private static final String HTML_HEAD = "<head><style>img{max-width:100% ; height:auto ; text-align:center  !important;}</style></head>\n";
+    private static final String HTML_HEAD = "<script>function wave(id,title){  \n" +
+            "window.alert(5 + 6);\n"+
+            "   var s = document.getElementById(id);   \n" +
+            "s.getElementsByClassName(\"title\")[0].innerHTML = title \n" +
+            "s.getElementsByClassName(\"artist\")[0].innerHTML = title} \n" +
+            "</script>" +
+            "<head><style>img{max-width:100% ; height:auto ; text-align:center  !important;}</style></head>\n";
     private static final String MUSIC_HTML_STRING = "<div class=\"info\">\n" +
-            "<div class=\"iner\">\n" +
             "<p class=\"title\"><a href=\"/song?id=33668985\">美若黎明</a></p>\n" +
             "<p class=\"artist\"><span title=\"李健\"><a class=\"s-fc3\" href=\"/artist?id=3695\">李健</a></span></p>\n" +
-            "</div>\n" +
             "</div>";
     private static final String MUSIC_URL = "http://music.163.com/";
     private ArticleContent mArticlesContent;
@@ -91,7 +95,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
                         Call<SongDetial> call = Net.getSongsApi().songDitials(id, "[" + id + "]");
                         call.enqueue(new LoadSongsDitialCallBack());
                         e.before(MUSIC_HTML_STRING);
-                        mSongsElementMap.put(id,e.parent().getElementsByClass("info").first());
+                        e.parent().getElementsByClass("info").first().attr("id", id);
                         e.remove();
                     }
                 }
@@ -115,10 +119,11 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
         public void onResponse(Call<SongDetial> call, Response<SongDetial> response) {
             if(mArticlesContent !=null &&mArticlesContent.getSongsMap()!=null &&response.body().getSong()!=null){
                 SongDetial.Song song =response.body().getSong();
-                Element element = mSongsElementMap.get(song.getId());
-                mArticlesContent.getSongsMap().put(song.getId(), response.body().getSong());
+                mArticlesContent.addSongs(song.getId(),song);
+             /*    Element element = mSongsElementMap.get(song.getId());
+               mArticlesContent.getSongsMap().put(song.getId(), response.body().getSong());
                 element.getElementsByClass("title").first().text(song.getName());
-                element.getElementsByClass("artist").first().text(song.getName());
+                element.getElementsByClass("artist").first().text(song.getName());*/
             }
         }
 

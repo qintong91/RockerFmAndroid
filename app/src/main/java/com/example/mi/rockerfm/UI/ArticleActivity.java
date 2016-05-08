@@ -3,6 +3,7 @@ package com.example.mi.rockerfm.UI;
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -12,6 +13,7 @@ import android.widget.Toast;
 
 import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 import com.example.mi.rockerfm.JsonBeans.Articles;
+import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.R;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
@@ -135,6 +137,13 @@ public class ArticleActivity extends Activity {
             downloadThread.start();*/
         }
     }
+    @Subscribe(threadMode = ThreadMode.MainThread)
+    public void onEvent(SongDetial.Song event) {
+       // mWebView.loadUrl("javascript:wave(" + event.getId() + "," + event.getName() +"," + event.getName() +")");
+        mWebView.loadUrl("javascript:wave('" + event.getId() + "','" + event.getName() +"')");
+
+    }
+
     private final class ContentCallback implements Callback<ArticleContent> {
 
         @Override
@@ -166,6 +175,7 @@ public class ArticleActivity extends Activity {
         }
         return "";
     }*/
+
     private void setNetRequestFailure() {
         Toast.makeText(ArticleActivity.this, "网络请求失败", Toast.LENGTH_LONG).show();
     }
