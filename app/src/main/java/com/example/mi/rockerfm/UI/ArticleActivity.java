@@ -1,6 +1,7 @@
 package com.example.mi.rockerfm.UI;
 
 import android.app.Activity;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
@@ -15,8 +16,12 @@ import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 import com.example.mi.rockerfm.JsonBeans.Articles;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.R;
+import com.example.mi.rockerfm.utls.ContentHtmlUtl;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
+
+import java.io.IOException;
+import java.util.Scanner;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -95,52 +100,13 @@ public class ArticleActivity extends Activity {
             mTvTitle.setText(mArticle.getTitleAttr());
             mTvAuthor.setText(mArticle.getAuthor().getNickname());
             mIvAuthor.setImageURI(Uri.parse(mArticle.getAuthor().getAvatarSrc()));
-
-/*            Thread downloadThread = new Thread() {
-                Document doc = null;
-                Element element = null;
-
-                public void run() {
-                    try {
-                        doc = Jsoup.connect(mArticle.getPermalink()).get();
-                        element = doc.select("div.entry-content").select(".noselect").select(".entry-topic").first();
-
-
-                    } catch (java.io.IOException e) {
-                        e.printStackTrace();
-                    }
-                    if (element == null) {
-                        Log.e("error", "There is a problem with the selection");
-                    } else {
-                        Elements elements = element.select("img");
-                        for (int i = 0; i < elements.size(); i++) {
-                            Element e = elements.get(i);
-                            e.attr(PIC_SRC, e.attr(PIC_ORG));
-                            e.removeAttr(PIC_ORG);
-                        }
-                        mHtml = getHtmlWithPicSrc(element.html());
-                        // post a new Runnable from a Handler in order to run the WebView loading code from the UI thread
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
-                            @Override
-                            public void run() {
-                                //mWebView.loadData(element.html(), "text/html; charset=UTF-8", null);
-                                //String content = String.format(readFile("template.txt"), element.html());
-
-                                mWebView.loadDataWithBaseURL(null, mHtml, MIME_TYPE, ENCODING_UTF_8, null);
-                                // mWebView.loadUrl("javascript:(function() {document.getElementById(\"Image1\").src=\"\";}()");
-                                Toast.makeText(ArticleActivity.this, System.currentTimeMillis() - olｄTime + "", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    }
-                }
-            };
-            downloadThread.start();*/
         }
     }
     @Subscribe(threadMode = ThreadMode.MainThread)
     public void onEvent(SongDetial.Song event) {
        // mWebView.loadUrl("javascript:wave(" + event.getId() + "," + event.getName() +"," + event.getName() +")");
-        mWebView.loadUrl("javascript:wave('" + event.getId() + "','" + event.getName() +"')");
+       // mWebView.loadUrl("javascript:wave('" + event.getId() + "','" + event.getName() +"')");
+        ContentHtmlUtl.updateSongDetial(mWebView,event);
 
     }
 
@@ -150,7 +116,6 @@ public class ArticleActivity extends Activity {
         public void onResponse(Call<ArticleContent> call, Response<ArticleContent> response) {
 
             mWebView.loadDataWithBaseURL(null, response.body().getContentHtml(), MIME_TYPE, ENCODING_UTF_8, null);
-            // mWebView.loadUrl("javascript:(function() {document.getElementById(\"Image1\").src=\"\";}()");
             Toast.makeText(ArticleActivity.this, System.currentTimeMillis() - olｄTime + "", Toast.LENGTH_LONG).show();
         }
 
@@ -161,8 +126,23 @@ public class ArticleActivity extends Activity {
         }
     }
 
-    /*private String readFile(String fileName) {
-        AssetManager manager = getAssets();
+    private void setNetRequestFailure() {
+        Toast.makeText(ArticleActivity.this, "网络请求失败", Toast.LENGTH_LONG).show();
+    }
+    private void injectCSS() {
+        String encoded = Base64.encodeToString(readFile(".main.css").getBytes(), Base64.NO_WRAP);
+        mWebView.loadUrl("javascript:(function() {web" +
+                "var parent = document.getElementsByTagName('head').item(0);" +
+                "var style = document.createElement('style');" +
+                "style.type = 'text/css';" +
+                // Tell the browser to BASE64-decode the string into your script !!!
+                "style.innerHTML = window.atob('" + encoded + "');" +
+                "parent.appendChild(style)" +
+                "})()");
+    }
+
+    private String readFile(String fileName) {
+        AssetManager manager = this.getAssets();
         try {
             Scanner scanner = new Scanner(manager.open(fileName));
             StringBuilder builder = new StringBuilder();
@@ -174,10 +154,6 @@ public class ArticleActivity extends Activity {
             e.printStackTrace();
         }
         return "";
-    }*/
-
-    private void setNetRequestFailure() {
-        Toast.makeText(ArticleActivity.this, "网络请求失败", Toast.LENGTH_LONG).show();
     }
 
 }

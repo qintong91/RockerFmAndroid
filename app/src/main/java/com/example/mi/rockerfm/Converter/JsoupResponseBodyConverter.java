@@ -37,17 +37,29 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     private static final String SRC = "src";
     private static final String ID = "id";
     private static final String PIC_ORG = "data-original";
-    private static final String HTML_HEAD = "<script>function wave(id,title){  \n" +
+    private static final String HTML_HEAD = "<script>function wave(id,title,artists,album_src){  \n" +
             "window.alert(5 + 6);\n"+
             "   var s = document.getElementById(id);   \n" +
-            "s.getElementsByClassName(\"title\")[0].innerHTML = title \n" +
-            "s.getElementsByClassName(\"artist\")[0].innerHTML = title} \n" +
+            "s.getElementsByClassName(\"title\")[0].innerHTML = title; \n" +
+            "s.getElementsByClassName(\"artists\")[0].innerHTML = artists; \n" +
+            "s.getElementsByTagName(\"img\")[0].src = album_src} \n" +
             "</script>" +
             "<head><style>img{max-width:100% ; height:auto ; text-align:center  !important;}</style></head>\n";
-    private static final String MUSIC_HTML_STRING = "<div class=\"info\">\n" +
+
+    /*private static final String MUSIC_HTML_STRING = "<div class=\"info\">\n" +
             "<p class=\"title\"><a href=\"/song?id=33668985\">美若黎明</a></p>\n" +
             "<p class=\"artist\"><span title=\"李健\"><a class=\"s-fc3\" href=\"/artist?id=3695\">李健</a></span></p>\n" +
-            "</div>";
+            "</div>";*/
+    private static final String MUSIC_HTML_STRING = "<div class=\"info\" style=\"margin-top: 20px;width: 100%;font-size: 12px;background: #ffe;\" id=\"186668\"  > \n" +
+            "  <img src=\"http://p3.music.126.net/i4HRPA6EL1uj7kOod2Y9mg==/39582418614561.jpg?param=150y150\" style=\"height: 150px;float: left;\"> \n" +
+            "  <div class=\"cnt\" style=\"height: 150px;      margin-left: 170px;   \"> \n" +
+            "   <div class=\"iner\" style=\"   height: 100px; \">  \n" +
+            "    <h2 class=\"title\">青苹果乐园</h2> \n" +
+            "    <p class=\"artists\" style=\"color: #666;font-size: 18px;\">小虎队</p> \n" +
+            "   </div> \n" +
+            "  </div> \n" +
+            "  <a href=\"/m/song/388068?autoplay=true\" data-app=\"true\" class=\"link\"></a> \n" +
+            " </div>";
     private static final String MUSIC_URL = "http://music.163.com/";
     private ArticleContent mArticlesContent;
     private HashMap<String,Element> mSongsElementMap;

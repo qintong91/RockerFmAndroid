@@ -33,11 +33,15 @@ public class SongDetial implements Serializable {
             return album;
         }
 
+        public List<Artist> getArtists() {
+            return artists;
+        }
 
         private String mp3Url;
         private String name;
         private String id;
         private Album album;
+        private List<Artist> artists;
     }
 
     public static class Album implements Serializable {
@@ -55,6 +59,28 @@ public class SongDetial implements Serializable {
 
         private String name;
         private String picUrl;
+        private String id;
+    }
+    public static class Artist implements Serializable {
+        public String getId() {
+            return id;
+        }
+
+        public String getImg1v1Url() {
+            return img1v1Url;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getPicUrl() {
+            return picUrl;
+        }
+
+        private String picUrl;
+        private String img1v1Url;
+        private String name;
         private String id;
     }
 }
