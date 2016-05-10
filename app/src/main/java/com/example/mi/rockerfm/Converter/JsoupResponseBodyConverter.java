@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
+import com.example.mi.rockerfm.UI.ArticleActivity;
 import com.example.mi.rockerfm.utls.Net;
 
 import org.jsoup.Jsoup;
@@ -50,19 +51,18 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             "<p class=\"title\"><a href=\"/song?id=33668985\">美若黎明</a></p>\n" +
             "<p class=\"artist\"><span title=\"李健\"><a class=\"s-fc3\" href=\"/artist?id=3695\">李健</a></span></p>\n" +
             "</div>";*/
-    private static final String MUSIC_HTML_STRING = "<div class=\"info\" style=\"margin-top: 20px;width: 100%;font-size: 12px;background: #F0F8FF; position: relative;display: inline-block;\"  > \n" +
-            "  <img   style=\"height: 100px;float: left;\"> \n" +
+    private static final String MUSIC_HTML_STRING = " <div class=\"info\" style=\"margin-top: 20px;width: 100%;font-size: 12px;background: #F0F8FF; position: relative;display: inline-block;\" id=\"186668\"> \n" +
+            "  <a href=\"music://23434\" style=\"height: 100px;float: left;width: 100%;text-decoration:none;\">\n" +
+            " <img style=\"height: 100px;float: left;\"> \n" +
             "  <div class=\"cnt\" style=\"    margin-left: 120px;   \"> \n" +
-            "   <div class=\"iner\"\">  \n" +
-            "    <h2 class=\"title\">青苹果乐园</h2> \n" +
-            "    <p class=\"artists\" style=\"color: #666;font-size: 18px;\">小虎队</p> \n" +
+            "   <div class=\"iner\" \"> \n" +
+            "    <h2 class=\"title\"style=\"color: #000033;font-size: 18px;\"></h2> \n" +
+            "    <p class=\"artists\" style=\"color: #666;font-size: 16px;\"></p> \n" +
             "   </div> \n" +
-            "  </div> \n" +
-            "  <a href=\"/m/song/388068?autoplay=true\" data-app=\"true\" class=\"link\"></a> \n" +
-            " </div>";
+            "  </div> </a> \n" +
+            "  </div>";
     private static final String MUSIC_URL = "http://music.163.com/";
     private ArticleContent mArticlesContent;
-    private HashMap<String,Element> mSongsElementMap;
     JsoupResponseBodyConverter(Type type) {
         elementClass = (Class) type;
         this.mType = type;
@@ -71,6 +71,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     @Override
     public T convert(ResponseBody value) throws IOException {
         try {
+            Log.d("Time_Html_getBody",System.currentTimeMillis() - ArticleActivity.olｄTime + "");
             Class classType = null;
 
             classType = Class.forName("com.example.mi.rockerfm.JsonBeans.ArticleContent");
@@ -90,9 +91,9 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
                     }
                 }
                 Elements elementsSong = element.select("iframe");
+                Call<SongDetial> call = null;
                 if (elementsSong != null && elementsSong.size() > 0) {
                     mArticlesContent.setSongsMap(new HashMap<String, SongDetial.Song>((int) Math.ceil(elementsSong.size() / 0.75)));
-                    mSongsElementMap = new HashMap<String, Element>((int) Math.ceil(elementsSong.size() / 0.75));
                     for (int i = elementsSong.size() - 1; i >= 0; i--) {
                         Element e = elementsSong.get(i);
                         String src = e.attr(SRC);
@@ -104,15 +105,14 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
                             id = m.group();
                             break;
                         }
-                        Call<SongDetial> call = Net.getSongsApi().songDitials(id, "[" + id + "]");
+                        call = Net.getSongsApi().songDitials(id, "[" + id + "]");
                         call.enqueue(new LoadSongsDitialCallBack());
                         e.before(MUSIC_HTML_STRING);
                         e.parent().getElementsByClass("info").first().attr("id", id);
                         e.remove();
                     }
                 }
-
-                mArticlesContent.setContentHtml(getHtmlWithPicSrc(element.html()));
+                mArticlesContent.setContentHtml(getHtmlWithHead(element.html()));
             }
 
         } catch (Exception e) {
@@ -121,7 +121,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
         return (T) mObj;
     }
 
-    private static String getHtmlWithPicSrc(String originalHtml) {
+    private static String getHtmlWithHead(String originalHtml) {
         String s = HTML_HEAD + originalHtml;
         return s;
     }
@@ -132,10 +132,6 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             if(mArticlesContent !=null &&mArticlesContent.getSongsMap()!=null &&response.body().getSong()!=null){
                 SongDetial.Song song =response.body().getSong();
                 mArticlesContent.addSongs(song.getId(),song);
-             /*    Element element = mSongsElementMap.get(song.getId());
-               mArticlesContent.getSongsMap().put(song.getId(), response.body().getSong());
-                element.getElementsByClass("title").first().text(song.getName());
-                element.getElementsByClass("artist").first().text(song.getName());*/
             }
         }
 

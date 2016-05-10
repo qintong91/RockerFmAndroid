@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -41,7 +42,9 @@ public class ArticleActivity extends Activity {
     private WebSettings mWebSettings;
     private Articles.Article mArticle;
     private String mHtml;
-    long olｄTime;
+    public static long olｄTime;
+    private Handler mHandler;
+    private ArticleContent mArticleContent;
     @Bind(R.id.article_webview)
     WebView mWebView;
     @Bind(R.id.tv_title)
@@ -59,7 +62,7 @@ public class ArticleActivity extends Activity {
         mWebSettings = mWebView.getSettings();
         mWebSettings.setJavaScriptEnabled(true);
         mWebSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
-
+        mHandler = new Handler();
 
 // 设置支持缩放
         mWebSettings.setSupportZoom(false);
@@ -72,7 +75,7 @@ public class ArticleActivity extends Activity {
                 return true;
             }
         });
-
+        this.mWebView.setWebViewClient(new MyWebViewClient());
     }
 
     @Override
@@ -102,10 +105,17 @@ public class ArticleActivity extends Activity {
         }
     }
     @Subscribe(threadMode = ThreadMode.MainThread)
-    public void onEvent(SongDetial.Song event) {
+    public void onEvent(final SongDetial.Song event) {
        // mWebView.loadUrl("javascript:wave(" + event.getId() + "," + event.getName() +"," + event.getName() +")");
        // mWebView.loadUrl("javascript:wave('" + event.getId() + "','" + event.getName() +"')");
-        ContentHtmlUtl.updateSongDetial(mWebView,event);
+        Log.d("Time_Html_getsongs", System.currentTimeMillis() - olｄTime + "");
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ContentHtmlUtl.updateSongDetial(mWebView, event);
+
+            }
+        }, 3000);
 
     }
 
@@ -113,8 +123,9 @@ public class ArticleActivity extends Activity {
 
         @Override
         public void onResponse(Call<ArticleContent> call, Response<ArticleContent> response) {
-
+            Log.d("Time_Html_prepared",System.currentTimeMillis() - olｄTime + "");
             mWebView.loadDataWithBaseURL(null, response.body().getContentHtml(), MIME_TYPE, ENCODING_UTF_8, null);
+            Log.d("Time_Html_2222", System.currentTimeMillis() - olｄTime + "");
             Toast.makeText(ArticleActivity.this, System.currentTimeMillis() - olｄTime + "", Toast.LENGTH_LONG).show();
         }
 
@@ -142,6 +153,19 @@ public class ArticleActivity extends Activity {
             e.printStackTrace();
         }
         return "";
+    }
+    private class MyWebViewClient extends WebViewClient{
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            Toast.makeText(ArticleActivity.this,"Clicking",Toast.LENGTH_LONG).show();
+            return true;
+        }
+        @Override
+        public void onPageFinished(WebView view, String url) {
+
+            Log.d("Time_Html_finished",System.currentTimeMillis() - olｄTime + "");
+            Toast.makeText(ArticleActivity.this,"finish",Toast.LENGTH_LONG).show();
+        }
     }
 
 }
