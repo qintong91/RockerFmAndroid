@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -128,17 +127,6 @@ public class ArticleActivity extends Activity {
 
     private void setNetRequestFailure() {
         Toast.makeText(ArticleActivity.this, "网络请求失败", Toast.LENGTH_LONG).show();
-    }
-    private void injectCSS() {
-        String encoded = Base64.encodeToString(readFile(".main.css").getBytes(), Base64.NO_WRAP);
-        mWebView.loadUrl("javascript:(function() {web" +
-                "var parent = document.getElementsByTagName('head').item(0);" +
-                "var style = document.createElement('style');" +
-                "style.type = 'text/css';" +
-                // Tell the browser to BASE64-decode the string into your script !!!
-                "style.innerHTML = window.atob('" + encoded + "');" +
-                "parent.appendChild(style)" +
-                "})()");
     }
 
     private String readFile(String fileName) {

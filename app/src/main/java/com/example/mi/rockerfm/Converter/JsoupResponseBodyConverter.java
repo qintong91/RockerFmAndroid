@@ -50,10 +50,10 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             "<p class=\"title\"><a href=\"/song?id=33668985\">美若黎明</a></p>\n" +
             "<p class=\"artist\"><span title=\"李健\"><a class=\"s-fc3\" href=\"/artist?id=3695\">李健</a></span></p>\n" +
             "</div>";*/
-    private static final String MUSIC_HTML_STRING = "<div class=\"info\" style=\"margin-top: 20px;width: 100%;font-size: 12px;background: #ffe;\" id=\"186668\"  > \n" +
-            "  <img src=\"http://p3.music.126.net/i4HRPA6EL1uj7kOod2Y9mg==/39582418614561.jpg?param=150y150\" style=\"height: 150px;float: left;\"> \n" +
-            "  <div class=\"cnt\" style=\"height: 150px;      margin-left: 170px;   \"> \n" +
-            "   <div class=\"iner\" style=\"   height: 100px; \">  \n" +
+    private static final String MUSIC_HTML_STRING = "<div class=\"info\" style=\"margin-top: 20px;width: 100%;font-size: 12px;background: #F0F8FF; position: relative;display: inline-block;\"  > \n" +
+            "  <img   style=\"height: 100px;float: left;\"> \n" +
+            "  <div class=\"cnt\" style=\"    margin-left: 120px;   \"> \n" +
+            "   <div class=\"iner\"\">  \n" +
             "    <h2 class=\"title\">青苹果乐园</h2> \n" +
             "    <p class=\"artists\" style=\"color: #666;font-size: 18px;\">小虎队</p> \n" +
             "   </div> \n" +
