@@ -1,7 +1,6 @@
 package com.example.mi.rockerfm.UI;
 
 import android.app.Activity;
-import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,9 +18,6 @@ import com.example.mi.rockerfm.R;
 import com.example.mi.rockerfm.utls.ContentHtmlUtl;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
-
-import java.io.IOException;
-import java.util.Scanner;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -109,13 +105,16 @@ public class ArticleActivity extends Activity {
        // mWebView.loadUrl("javascript:wave(" + event.getId() + "," + event.getName() +"," + event.getName() +")");
        // mWebView.loadUrl("javascript:wave('" + event.getId() + "','" + event.getName() +"')");
         Log.d("Time_Html_getsongs", System.currentTimeMillis() - olｄTime + "");
+        ContentHtmlUtl.updateSongDetial(mWebView, event);
+/*
+
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                ContentHtmlUtl.updateSongDetial(mWebView, event);
 
             }
         }, 3000);
+*/
 
     }
 
@@ -124,7 +123,8 @@ public class ArticleActivity extends Activity {
         @Override
         public void onResponse(Call<ArticleContent> call, Response<ArticleContent> response) {
             Log.d("Time_Html_prepared",System.currentTimeMillis() - olｄTime + "");
-            mWebView.loadDataWithBaseURL(null, response.body().getContentHtml(), MIME_TYPE, ENCODING_UTF_8, null);
+            mArticleContent = response.body();
+            mWebView.loadDataWithBaseURL(null, mArticleContent.getContentHtml(), MIME_TYPE, ENCODING_UTF_8, null);
             Log.d("Time_Html_2222", System.currentTimeMillis() - olｄTime + "");
             Toast.makeText(ArticleActivity.this, System.currentTimeMillis() - olｄTime + "", Toast.LENGTH_LONG).show();
         }
@@ -140,29 +140,15 @@ public class ArticleActivity extends Activity {
         Toast.makeText(ArticleActivity.this, "网络请求失败", Toast.LENGTH_LONG).show();
     }
 
-    private String readFile(String fileName) {
-        AssetManager manager = this.getAssets();
-        try {
-            Scanner scanner = new Scanner(manager.open(fileName));
-            StringBuilder builder = new StringBuilder();
-            while (scanner.hasNext()) {
-                builder.append(scanner.nextLine());
-            }
-            return builder.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
     private class MyWebViewClient extends WebViewClient{
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Toast.makeText(ArticleActivity.this,"Clicking",Toast.LENGTH_LONG).show();
+            Toast.makeText(ArticleActivity.this,"Clicking"+url,Toast.LENGTH_LONG).show();
             return true;
         }
         @Override
         public void onPageFinished(WebView view, String url) {
-
+            ContentHtmlUtl.updateEmptySongs(mWebView, mArticleContent);
             Log.d("Time_Html_finished",System.currentTimeMillis() - olｄTime + "");
             Toast.makeText(ArticleActivity.this,"finish",Toast.LENGTH_LONG).show();
         }

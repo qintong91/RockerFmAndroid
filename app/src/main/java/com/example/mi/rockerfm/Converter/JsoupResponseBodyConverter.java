@@ -38,21 +38,30 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     private static final String SRC = "src";
     private static final String ID = "id";
     private static final String PIC_ORG = "data-original";
-    private static final String HTML_HEAD = "<script>function wave(id,title,artists,album_src){  \n" +
-            "window.alert(5 + 6);\n"+
-            "   var s = document.getElementById(id);   \n" +
+    private static final String HTML_HEAD = "<script>function updateSong(id,title,artists,album_src){  \n" +
+            "var s = document.getElementById(id); \n" +
+            "s.getElementsByTagName(\"a\")[0].href = 'music://'+id; \n" +
             "s.getElementsByClassName(\"title\")[0].innerHTML = title; \n" +
             "s.getElementsByClassName(\"artists\")[0].innerHTML = artists; \n" +
             "s.getElementsByTagName(\"img\")[0].src = album_src} \n" +
             "</script>" +
+            "<script>function updateEmptySongs(){  \n" +
+            "            var s = document.getElementsByClassName(\"info\");  \n" +
+            "            for (var i=0;i<s.length;i++)\n" +
+            "            {\n" +
+            "              if(s[i].getElementsByTagName(\"a\")[0].href == \"music://\"){       \n" +
+            "              var id = s[i].attributes[\"id\"].value;  \n" +
+            "              s[i].getElementsByTagName(\"a\")[0].href = 'music://'+id;  \n" +
+            "              s[i].getElementsByClassName(\"title\")[0].innerHTML = \"a\";  \n" +
+            "              s[i].getElementsByClassName(\"artists\")[0].innerHTML = getArtistsName(id);  \n" +
+            "              s[i].getElementsByTagName(\"img\")[0].src = getAlbumSrc(id);   \n" +
+            " }\n" +
+            "            }\n" +
+            "          } </script>  " +
             "<head><style>img{max-width:100% ; height:auto ; text-align:center  !important;}</style></head>\n";
 
-    /*private static final String MUSIC_HTML_STRING = "<div class=\"info\">\n" +
-            "<p class=\"title\"><a href=\"/song?id=33668985\">美若黎明</a></p>\n" +
-            "<p class=\"artist\"><span title=\"李健\"><a class=\"s-fc3\" href=\"/artist?id=3695\">李健</a></span></p>\n" +
-            "</div>";*/
-    private static final String MUSIC_HTML_STRING = " <div class=\"info\" style=\"margin-top: 20px;width: 100%;font-size: 12px;background: #F0F8FF; position: relative;display: inline-block;\" id=\"186668\"> \n" +
-            "  <a href=\"music://23434\" style=\"height: 100px;float: left;width: 100%;text-decoration:none;\">\n" +
+    private static final String MUSIC_HTML_STRING = " <div class=\"info\" style=\"margin-top: 20px;width: 100%;font-size: 12px;background: #F0F8FF; position: relative;display: inline-block;\" id=\"\"> \n" +
+            "  <a href=\"music://\" style=\"height: 100px;float: left;width: 100%;text-decoration:none;\">\n" +
             " <img style=\"height: 100px;float: left;\"> \n" +
             "  <div class=\"cnt\" style=\"    margin-left: 120px;   \"> \n" +
             "   <div class=\"iner\" \"> \n" +
