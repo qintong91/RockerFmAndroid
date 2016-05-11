@@ -52,9 +52,9 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             "              if(s[i].getElementsByTagName(\"a\")[0].href == \"music://\"){       \n" +
             "              var id = s[i].attributes[\"id\"].value;  \n" +
             "              s[i].getElementsByTagName(\"a\")[0].href = 'music://'+id;  \n" +
-            "              s[i].getElementsByClassName(\"title\")[0].innerHTML = \"a\";  \n" +
-            "              s[i].getElementsByClassName(\"artists\")[0].innerHTML = getArtistsName(id);  \n" +
-            "              s[i].getElementsByTagName(\"img\")[0].src = getAlbumSrc(id);   \n" +
+            "              s[i].getElementsByClassName(\"title\")[0].innerHTML = Android.getArtistsName(id);;  \n" +
+            "              s[i].getElementsByClassName(\"artists\")[0].innerHTML = Android.getArtistsName(id);  \n" +
+            "              s[i].getElementsByTagName(\"img\")[0].src = Android.getAlbumSrc(id);   \n" +
             " }\n" +
             "            }\n" +
             "          } </script>  " +

@@ -1,5 +1,6 @@
 package com.example.mi.rockerfm.utls;
 
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
@@ -15,22 +16,7 @@ public class ContentHtmlUtl {
     }
 
     public static void updateEmptySongs(WebView webView, final ArticleContent articleContent) {
-        webView.addJavascriptInterface(new Object() {
-            @JavascriptInterface
-            public String getSongTitle(String id) {
-                return articleContent.getSongsMap().get(id).getName();
-            }
-
-            @JavascriptInterface
-            public String getArtistsName(String id) {
-                return getAtistsString(articleContent.getSongsMap().get(id));
-            }
-
-            @JavascriptInterface
-            public String getAlbumSrc(String id) {
-                return articleContent.getSongsMap().get(id).getAlbum().getPicUrl();
-            }
-        }, "JsObject");
+       // webView.addJavascriptInterface(new ContentHtmlUtl(), "Android");
         webView.loadUrl("javascript:updateEmptySongs()");
     }
     private static String getAtistsString(SongDetial.Song song){
@@ -40,6 +26,26 @@ public class ContentHtmlUtl {
             sb.append(" ");
         }
         return sb.toString();
+    }
+    public static class JsObject {
+        @JavascriptInterface
+        public String getSongTitle(String id) {
+            return "a";
+            //return articleContent.getSongsMap().get(id).getName();
+        }
+
+        @JavascriptInterface
+        public String getArtistsName(String id) {
+            return "a";
+            //return getAtistsString(articleContent.getSongsMap().get(id));
+        }
+
+        @JavascriptInterface
+        public String getAlbumSrc(String id) {
+            return "a";
+            //return articleContent.getSongsMap().get(id).getAlbum().getPicUrl();
+        }
+
     }
 
 }

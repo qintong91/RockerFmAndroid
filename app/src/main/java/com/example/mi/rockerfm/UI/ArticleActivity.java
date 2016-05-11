@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -62,16 +63,8 @@ public class ArticleActivity extends Activity {
 
 // 设置支持缩放
         mWebSettings.setSupportZoom(false);
-
-        mWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                // TODO Auto-generated method stub
-                //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
-                return true;
-            }
-        });
         this.mWebView.setWebViewClient(new MyWebViewClient());
+        mWebView.addJavascriptInterface(new ContentHtmlUtl.JsObject(), "Android");
     }
 
     @Override
