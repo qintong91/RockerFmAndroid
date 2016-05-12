@@ -16,7 +16,7 @@ import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 import com.example.mi.rockerfm.JsonBeans.Articles;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.R;
-import com.example.mi.rockerfm.utls.ContentHtmlUtl;
+import com.example.mi.rockerfm.utls.ContentAdapter;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
 
@@ -42,6 +42,7 @@ public class ArticleActivity extends Activity {
     public static long olｄTime;
     private Handler mHandler;
     private ArticleContent mArticleContent;
+    private ContentAdapter mContentAdapter;
     @Bind(R.id.article_webview)
     WebView mWebView;
     @Bind(R.id.tv_title)
@@ -59,12 +60,10 @@ public class ArticleActivity extends Activity {
         mWebSettings = mWebView.getSettings();
         mWebSettings.setJavaScriptEnabled(true);
         mWebSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
-        mHandler = new Handler();
 
 // 设置支持缩放
         mWebSettings.setSupportZoom(false);
         this.mWebView.setWebViewClient(new MyWebViewClient());
-        mWebView.addJavascriptInterface(new ContentHtmlUtl.JsObject(), "Android");
     }
 
     @Override
@@ -99,17 +98,6 @@ public class ArticleActivity extends Activity {
        // mWebView.loadUrl("javascript:wave('" + event.getId() + "','" + event.getName() +"')");
         Log.d("Time_Html_getsongs", System.currentTimeMillis() - olｄTime + "");
         ContentHtmlUtl.updateSongDetial(mWebView, event);
-/*
-
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-
-            }
-        }, 3000);
-*/
-
-    }
 
     private final class ContentCallback implements Callback<ArticleContent> {
 

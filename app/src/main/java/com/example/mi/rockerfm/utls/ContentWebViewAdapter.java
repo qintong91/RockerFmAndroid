@@ -1,16 +1,25 @@
 package com.example.mi.rockerfm.utls;
 
-import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
 import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
+import com.example.mi.rockerfm.UI.ArticleActivity;
 
 /**
  * Created by qintong on 16-5-9.
  */
-public class ContentHtmlUtl {
+public class ContentWebViewAdapter {
+    WebView mWebView;
+    ArticleContent mArticleContent;
+    ArticleActivity mArticleActivity;
+    public  ContentWebViewAdapter  (WebView webView,ArticleContent articleContent,ArticleActivity articleActivity){
+        mWebView = webView;
+        mArticleContent = articleContent;
+        mArticleActivity = articleActivity;
+        mWebView.addJavascriptInterface(new JsObject(), "Android");
+    }
     public static void updateSongDetial(WebView webView, SongDetial.Song song) {
         webView.loadUrl("javascript:updateSong('" + song.getId() + "','" + song.getName() + "','" + getAtistsString(song) + "','" + song.getAlbum().getPicUrl() + "')");
     }
@@ -27,7 +36,7 @@ public class ContentHtmlUtl {
         }
         return sb.toString();
     }
-    public static class JsObject {
+    public class JsObject {
         @JavascriptInterface
         public String getSongTitle(String id) {
             return "a";
