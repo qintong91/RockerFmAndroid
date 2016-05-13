@@ -5,7 +5,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -16,7 +15,7 @@ import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 import com.example.mi.rockerfm.JsonBeans.Articles;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.R;
-import com.example.mi.rockerfm.utls.ContentAdapter;
+import com.example.mi.rockerfm.utls.ContentWebViewJsAdapter;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
 
@@ -42,7 +41,7 @@ public class ArticleActivity extends Activity {
     public static long olｄTime;
     private Handler mHandler;
     private ArticleContent mArticleContent;
-    private ContentAdapter mContentAdapter;
+    private ContentWebViewJsAdapter mWebViewJsAdapter;
     @Bind(R.id.article_webview)
     WebView mWebView;
     @Bind(R.id.tv_title)
@@ -64,6 +63,7 @@ public class ArticleActivity extends Activity {
 // 设置支持缩放
         mWebSettings.setSupportZoom(false);
         this.mWebView.setWebViewClient(new MyWebViewClient());
+        mWebViewJsAdapter = new ContentWebViewJsAdapter(mWebView,null,this);
     }
 
     @Override
@@ -94,10 +94,9 @@ public class ArticleActivity extends Activity {
     }
     @Subscribe(threadMode = ThreadMode.MainThread)
     public void onEvent(final SongDetial.Song event) {
-       // mWebView.loadUrl("javascript:wave(" + event.getId() + "," + event.getName() +"," + event.getName() +")");
-       // mWebView.loadUrl("javascript:wave('" + event.getId() + "','" + event.getName() +"')");
         Log.d("Time_Html_getsongs", System.currentTimeMillis() - olｄTime + "");
-        ContentHtmlUtl.updateSongDetial(mWebView, event);
+        mWebViewJsAdapter.updateSongDetial(event);
+    }
 
     private final class ContentCallback implements Callback<ArticleContent> {
 
@@ -105,6 +104,7 @@ public class ArticleActivity extends Activity {
         public void onResponse(Call<ArticleContent> call, Response<ArticleContent> response) {
             Log.d("Time_Html_prepared",System.currentTimeMillis() - olｄTime + "");
             mArticleContent = response.body();
+            mWebViewJsAdapter.setmArticleContent(mArticleContent);
             mWebView.loadDataWithBaseURL(null, mArticleContent.getContentHtml(), MIME_TYPE, ENCODING_UTF_8, null);
             Log.d("Time_Html_2222", System.currentTimeMillis() - olｄTime + "");
             Toast.makeText(ArticleActivity.this, System.currentTimeMillis() - olｄTime + "", Toast.LENGTH_LONG).show();
@@ -118,20 +118,20 @@ public class ArticleActivity extends Activity {
     }
 
     private void setNetRequestFailure() {
-        Toast.makeText(ArticleActivity.this, "网络请求失败", Toast.LENGTH_LONG).show();
+        Toast.makeText(ArticleActivity.this, "网络请求失败", Toast.LENGTH_SHORT).show();
     }
 
     private class MyWebViewClient extends WebViewClient{
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Toast.makeText(ArticleActivity.this,"Clicking"+url,Toast.LENGTH_LONG).show();
+            Toast.makeText(ArticleActivity.this,"Clicking"+url,Toast.LENGTH_SHORT).show();
             return true;
         }
         @Override
         public void onPageFinished(WebView view, String url) {
-            ContentHtmlUtl.updateEmptySongs(mWebView, mArticleContent);
             Log.d("Time_Html_finished",System.currentTimeMillis() - olｄTime + "");
-            Toast.makeText(ArticleActivity.this,"finish",Toast.LENGTH_LONG).show();
+            Toast.makeText(ArticleActivity.this,"finish",Toast.LENGTH_SHORT).show();
+            mWebViewJsAdapter.updateEmptySongs();
         }
     }
 

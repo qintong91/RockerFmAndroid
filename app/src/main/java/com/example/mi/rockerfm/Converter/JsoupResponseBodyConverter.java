@@ -41,9 +41,10 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     private static final String HTML_HEAD = "<script>function updateSong(id,title,artists,album_src){  \n" +
             "var s = document.getElementById(id); \n" +
             "s.getElementsByTagName(\"a\")[0].href = 'music://'+id; \n" +
-            "s.getElementsByClassName(\"title\")[0].innerHTML = title; \n" +
+            "s.getElementsByClassName(\"title\")[0].innerHTML = 'title'; \n" +
             "s.getElementsByClassName(\"artists\")[0].innerHTML = artists; \n" +
-            "s.getElementsByTagName(\"img\")[0].src = album_src} \n" +
+            "s.getElementsByTagName(\"img\")[0].src = album_src;" +
+            "} \n" +
             "</script>" +
             "<script>function updateEmptySongs(){  \n" +
             "            var s = document.getElementsByClassName(\"info\");  \n" +
@@ -52,7 +53,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             "              if(s[i].getElementsByTagName(\"a\")[0].href == \"music://\"){       \n" +
             "              var id = s[i].attributes[\"id\"].value;  \n" +
             "              s[i].getElementsByTagName(\"a\")[0].href = 'music://'+id;  \n" +
-            "              s[i].getElementsByClassName(\"title\")[0].innerHTML = Android.getArtistsName(id);;  \n" +
+            "              s[i].getElementsByClassName(\"title\")[0].innerHTML = Android.getSongTitle(id);  \n" +
             "              s[i].getElementsByClassName(\"artists\")[0].innerHTML = Android.getArtistsName(id);  \n" +
             "              s[i].getElementsByTagName(\"img\")[0].src = Android.getAlbumSrc(id);   \n" +
             " }\n" +
@@ -64,7 +65,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             "  <a href=\"music://\" style=\"height: 100px;float: left;width: 100%;text-decoration:none;\">\n" +
             " <img style=\"height: 100px;float: left;\"> \n" +
             "  <div class=\"cnt\" style=\"    margin-left: 120px;   \"> \n" +
-            "   <div class=\"iner\" \"> \n" +
+            "   <div class=\"iner\"> \n" +
             "    <h2 class=\"title\"style=\"color: #000033;font-size: 18px;\"></h2> \n" +
             "    <p class=\"artists\" style=\"color: #666;font-size: 16px;\"></p> \n" +
             "   </div> \n" +
