@@ -1,6 +1,7 @@
 package com.example.mi.rockerfm.UI;
 
 import android.app.Activity;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +19,8 @@ import com.example.mi.rockerfm.R;
 import com.example.mi.rockerfm.utls.ContentWebViewJsAdapter;
 import com.example.mi.rockerfm.utls.Net;
 import com.facebook.drawee.view.SimpleDraweeView;
+
+import java.io.IOException;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -42,6 +45,7 @@ public class ArticleActivity extends Activity {
     private Handler mHandler;
     private ArticleContent mArticleContent;
     private ContentWebViewJsAdapter mWebViewJsAdapter;
+    private MediaPlayer mMediaPlayer;
     @Bind(R.id.article_webview)
     WebView mWebView;
     @Bind(R.id.tv_title)
@@ -105,6 +109,7 @@ public class ArticleActivity extends Activity {
             Log.d("Time_Html_prepared",System.currentTimeMillis() - olｄTime + "");
             mArticleContent = response.body();
             mWebViewJsAdapter.setmArticleContent(mArticleContent);
+            Log.e("htmlDetial", mArticleContent.getContentHtml() + "");
             mWebView.loadDataWithBaseURL(null, mArticleContent.getContentHtml(), MIME_TYPE, ENCODING_UTF_8, null);
             Log.d("Time_Html_2222", System.currentTimeMillis() - olｄTime + "");
             Toast.makeText(ArticleActivity.this, System.currentTimeMillis() - olｄTime + "", Toast.LENGTH_LONG).show();
@@ -124,7 +129,16 @@ public class ArticleActivity extends Activity {
     private class MyWebViewClient extends WebViewClient{
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Toast.makeText(ArticleActivity.this,"Clicking"+url,Toast.LENGTH_SHORT).show();
+            if(mMediaPlayer == null)
+                mMediaPlayer = new MediaPlayer();
+            try {
+                mMediaPlayer
+                        .setDataSource(mArticleContent.getSongsMap().get((url.split("//"))[1]).getmp3Url());
+                mMediaPlayer.prepare();
+                mMediaPlayer.start();
+            } catch (IOException e) {
+                Log.v("AUDIOHTTPPLAYER", e.getMessage());
+            }            Toast.makeText(ArticleActivity.this,"Clicking"+url,Toast.LENGTH_SHORT).show();
             return true;
         }
         @Override

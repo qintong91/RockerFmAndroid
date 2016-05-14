@@ -41,7 +41,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     private static final String HTML_HEAD = "<script>function updateSong(id,title,artists,album_src){  \n" +
             "var s = document.getElementById(id); \n" +
             "s.getElementsByTagName(\"a\")[0].href = 'music://'+id; \n" +
-            "s.getElementsByClassName(\"title\")[0].innerHTML = 'title'; \n" +
+            "s.getElementsByClassName(\"title\")[0].innerHTML = title; \n" +
             "s.getElementsByClassName(\"artists\")[0].innerHTML = artists; \n" +
             "s.getElementsByTagName(\"img\")[0].src = album_src;" +
             "} \n" +
@@ -50,8 +50,8 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             "            var s = document.getElementsByClassName(\"info\");  \n" +
             "            for (var i=0;i<s.length;i++)\n" +
             "            {\n" +
-            "              if(s[i].getElementsByTagName(\"a\")[0].href == \"music://\"){       \n" +
             "              var id = s[i].attributes[\"id\"].value;  \n" +
+            "              if(s[i].getElementsByTagName(\"a\")[0].href == \"music://\"){       \n" +
             "              s[i].getElementsByTagName(\"a\")[0].href = 'music://'+id;  \n" +
             "              s[i].getElementsByClassName(\"title\")[0].innerHTML = Android.getSongTitle(id);  \n" +
             "              s[i].getElementsByClassName(\"artists\")[0].innerHTML = Android.getArtistsName(id);  \n" +

@@ -1,5 +1,6 @@
 package com.example.mi.rockerfm.utls;
 
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.Toast;
@@ -24,7 +25,7 @@ public class ContentWebViewJsAdapter {
     }
 
     public void updateSongDetial(SongDetial.Song song) {
-        mWebView.loadUrl("javascript:updateSong('" + song.getId() + "','" + song.getName() + "','" + getAtistsString(song) + "','" + song.getAlbum().getPicUrl() + "')");
+         mWebView.loadUrl("javascript:updateSong('" + song.getId() + "','" + song.getName() + "','" + getAtistsString(song) + "','" + song.getAlbum().getPicUrl() + "')");
     }
 
     public void updateEmptySongs() {
@@ -35,23 +36,28 @@ public class ContentWebViewJsAdapter {
     public class JsObject {
         @JavascriptInterface
         public String getSongTitle(String id) {
-            if (mArticleContent == null)
-                return null;
+            Log.e("songssss",id+"nnnnnnn");
+            if (mArticleContent.getSongsMap().get(id) == null){
+                 return "";
+            }
             Toast.makeText(mArticleActivity, "Loading From JsObject!!!!!!!!!!!!!"+mArticleContent.getSongsMap().get(id).getName(), Toast.LENGTH_SHORT).show();
             return mArticleContent.getSongsMap().get(id).getName();
         }
 
         @JavascriptInterface
         public String getArtistsName(String id) {
-            if (mArticleContent == null)
-                return null;
+            if (mArticleContent.getSongsMap().get(id) == null){
+                 return "";
+            }
             return getAtistsString(mArticleContent.getSongsMap().get(id));
         }
 
         @JavascriptInterface
         public String getAlbumSrc(String id) {
-            if (mArticleContent == null)
-                return null;
+            if (mArticleContent.getSongsMap().get(id) == null)
+            {
+                 return null;
+            }
             Toast.makeText(mArticleActivity, "Loading From JsObject!!!!!!!!!!!!!", Toast.LENGTH_SHORT).show();
             return mArticleContent.getSongsMap().get(id).getAlbum().getPicUrl();
         }
@@ -70,6 +76,5 @@ public class ContentWebViewJsAdapter {
         }
         return sb.toString();
     }
-
 
 }
