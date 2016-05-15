@@ -1,5 +1,6 @@
 package com.example.mi.rockerfm.utls;
 
+import android.app.Activity;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -15,9 +16,9 @@ import com.example.mi.rockerfm.UI.ArticleActivity;
 public class ContentWebViewJsAdapter {
     WebView mWebView;
     ArticleContent mArticleContent;
-    ArticleActivity mArticleActivity;
+    Activity mArticleActivity;
 
-    public ContentWebViewJsAdapter(WebView webView, ArticleContent articleContent, ArticleActivity articleActivity) {
+    public ContentWebViewJsAdapter(WebView webView, ArticleContent articleContent, Activity articleActivity) {
         mWebView = webView;
         mArticleContent = articleContent;
         mArticleActivity = articleActivity;

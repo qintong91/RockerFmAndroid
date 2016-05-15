@@ -282,7 +282,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 EventBus.getDefault().postSticky(mArticles.getData().get(getAdapterPosition()));
-                Intent intent = new Intent(MainActivity.this, ArticleActivity.class);
+                //Intent intent = new Intent(MainActivity.this, ArticleActivity.class);
+                Intent intent = new Intent(MainActivity.this, RockerFmMainActivity.class);
                 startActivity(intent);
             }
         }
