@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.mi.rockerfm.Bus.ArticleClickEvent;
 import com.example.mi.rockerfm.JsonBeans.Articles;
 import com.example.mi.rockerfm.R;
 import com.example.mi.rockerfm.utls.Cache;
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsFreshing;
     private boolean mIsLoadingMore;
     private static final int PAGE_SIZE = 10;
+    private ArticleClickEvent mArticleClickEvent;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -281,7 +283,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                EventBus.getDefault().postSticky(mArticles.getData().get(getAdapterPosition()));
+                if(mArticleClickEvent == null)
+                    mArticleClickEvent = new ArticleClickEvent();
+                mArticleClickEvent.setArticle(mArticles.getData().get(getAdapterPosition()));
+                 EventBus.getDefault().postSticky(mArticleClickEvent);
                 //Intent intent = new Intent(MainActivity.this, ArticleActivity.class);
                 Intent intent = new Intent(MainActivity.this, RockerFmMainActivity.class);
                 startActivity(intent);

@@ -1,25 +1,16 @@
 package com.example.mi.rockerfm.UI;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.widget.Toolbar;
-import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.mi.rockerfm.R;
+import com.example.mi.rockerfm.utls.MusicPlayer;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.util.Arrays;
@@ -29,11 +20,9 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 /**
- * Created by qin on 2016/5/15.
+ * Created by qintong on 2016/5/15.
  */
 public class RockerFmMainActivity extends FragmentActivity {
-    private static final String TAG = "DemoActivity";
-
     @Bind(R.id.main_sliding_layout)
     SlidingUpPanelLayout mLayout;
     @Bind(R.id.play_list)
@@ -43,6 +32,7 @@ public class RockerFmMainActivity extends FragmentActivity {
     @Bind(R.id.dragView)
     View mDragView;
 
+    private MusicPlayer mMusicPlayer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,13 +54,11 @@ public class RockerFmMainActivity extends FragmentActivity {
           mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
               @Override
               public void onPanelSlide(View panel, float slideOffset) {
-                  Log.i(TAG, "onPanelSlide, offset " + slideOffset);
-              }
+               }
 
               @Override
               public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
-                  Log.i(TAG, "onPanelStateChanged " + newState);
-              }
+               }
           });
         mLayout.setFadeOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,8 +84,10 @@ public class RockerFmMainActivity extends FragmentActivity {
             }
         });
         getSupportFragmentManager().beginTransaction().replace(R.id.container, new ArticleFragment()).commit();
+        mMusicPlayer = MusicPlayer.getInstance(mPlayListView);
 
     }
+
 }
 
 

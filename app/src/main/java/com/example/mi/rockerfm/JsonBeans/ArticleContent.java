@@ -1,5 +1,7 @@
 package com.example.mi.rockerfm.JsonBeans;
 
+import com.example.mi.rockerfm.Bus.SongLoadDitialObtainEvent;
+
 import java.io.Serializable;
 import java.util.HashMap;
 
@@ -26,11 +28,14 @@ public class ArticleContent implements Serializable {
     }
 
     public void addSongs(String string,SongDetial.Song song){
+        if(songLoadDitialObtainEvent ==null)
+            songLoadDitialObtainEvent = new SongLoadDitialObtainEvent();
+        songLoadDitialObtainEvent.setSong(song);
         songsMap.put(string,song);
-        EventBus.getDefault().post(song);
+        EventBus.getDefault().post(songLoadDitialObtainEvent);
     }
 
     private String ContentHtml;
-
     private HashMap<String,SongDetial.Song> songsMap;
+    private SongLoadDitialObtainEvent songLoadDitialObtainEvent;
 }

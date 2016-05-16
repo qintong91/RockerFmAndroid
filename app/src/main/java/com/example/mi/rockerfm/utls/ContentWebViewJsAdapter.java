@@ -8,7 +8,6 @@ import android.widget.Toast;
 
 import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
-import com.example.mi.rockerfm.UI.ArticleActivity;
 
 /**
  * Created by qintong on 16-5-9.
