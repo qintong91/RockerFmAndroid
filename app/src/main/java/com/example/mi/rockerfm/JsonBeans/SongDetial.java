@@ -37,6 +37,15 @@ public class SongDetial implements Serializable {
             return artists;
         }
 
+        public String getAtistsString() {
+            StringBuilder sb = new StringBuilder();
+            for (SongDetial.Artist artist : artists) {
+                sb.append(artist.getName());
+                sb.append(" ");
+            }
+            return sb.toString();
+        }
+
         private String mp3Url;
         private String name;
         private String id;
@@ -83,4 +92,5 @@ public class SongDetial implements Serializable {
         private String name;
         private String id;
     }
+
 }

@@ -25,7 +25,7 @@ public class ContentWebViewJsAdapter {
     }
 
     public void updateSongDetial(SongDetial.Song song) {
-         mWebView.loadUrl("javascript:updateSong('" + song.getId() + "','" + song.getName() + "','" + getAtistsString(song) + "','" + song.getAlbum().getPicUrl() + "')");
+         mWebView.loadUrl("javascript:updateSong('" + song.getId() + "','" + song.getName() + "','" + song.getAtistsString() + "','" + song.getAlbum().getPicUrl() + "')");
     }
 
     public void updateEmptySongs() {
@@ -49,7 +49,7 @@ public class ContentWebViewJsAdapter {
             if (mArticleContent.getSongsMap().get(id) == null){
                  return "";
             }
-            return getAtistsString(mArticleContent.getSongsMap().get(id));
+            return mArticleContent.getSongsMap().get(id).getAtistsString();
         }
 
         @JavascriptInterface
@@ -66,15 +66,6 @@ public class ContentWebViewJsAdapter {
 
     public void setmArticleContent(ArticleContent mArticleContent) {
         this.mArticleContent = mArticleContent;
-    }
-
-    private static String getAtistsString(SongDetial.Song song) {
-        StringBuilder sb = new StringBuilder();
-        for (SongDetial.Artist artist : song.getArtists()) {
-            sb.append(artist.getName());
-            sb.append(" ");
-        }
-        return sb.toString();
     }
 
 }

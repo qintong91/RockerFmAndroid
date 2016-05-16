@@ -2,6 +2,7 @@ package com.example.mi.rockerfm.UI;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.widget.RecyclerView;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -26,7 +27,7 @@ public class RockerFmMainActivity extends FragmentActivity {
     @Bind(R.id.main_sliding_layout)
     SlidingUpPanelLayout mLayout;
     @Bind(R.id.play_list)
-    ListView mPlayListView;
+    RecyclerView mRecyclerView;
     @Bind(R.id.play)
     Button mPlayButtom;
     @Bind(R.id.dragView)
@@ -40,17 +41,6 @@ public class RockerFmMainActivity extends FragmentActivity {
         ButterKnife.bind(this);
         mLayout.setAnchorPoint(0.7f);
         mDragView.setClickable(false);
-        List<String> your_array_list = Arrays.asList(
-                "This",
-                "Is",
-                "An"
-        );
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                this,
-                android.R.layout.simple_list_item_1,
-                your_array_list);
-
-        mPlayListView.setAdapter(arrayAdapter);
           mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
               @Override
               public void onPanelSlide(View panel, float slideOffset) {
@@ -84,7 +74,7 @@ public class RockerFmMainActivity extends FragmentActivity {
             }
         });
         getSupportFragmentManager().beginTransaction().replace(R.id.container, new ArticleFragment()).commit();
-        mMusicPlayer = MusicPlayer.getInstance(mPlayListView);
+        mMusicPlayer = MusicPlayer.getInstance(mRecyclerView,this);
 
     }
 
