@@ -287,8 +287,7 @@ public class MainActivity extends AppCompatActivity {
                     mArticleClickEvent = new ArticleClickEvent();
                 mArticleClickEvent.setArticle(mArticles.getData().get(getAdapterPosition()));
                  EventBus.getDefault().postSticky(mArticleClickEvent);
-                //Intent intent = new Intent(MainActivity.this, ArticleActivity.class);
-                Intent intent = new Intent(MainActivity.this, RockerFmMainActivity.class);
+                 Intent intent = new Intent(MainActivity.this, RockerFmMainActivity.class);
                 startActivity(intent);
             }
         }

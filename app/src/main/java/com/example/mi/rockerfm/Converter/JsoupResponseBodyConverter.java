@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.example.mi.rockerfm.JsonBeans.ArticleContent;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
-import com.example.mi.rockerfm.UI.ArticleActivity;
 import com.example.mi.rockerfm.utls.Net;
 
 import org.jsoup.Jsoup;
@@ -81,8 +80,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     @Override
     public T convert(ResponseBody value) throws IOException {
         try {
-            Log.d("Time_Html_getBody",System.currentTimeMillis() - ArticleActivity.olｄTime + "");
-            Class classType = null;
+             Class classType = null;
 
             classType = Class.forName("com.example.mi.rockerfm.JsonBeans.ArticleContent");
             mObj = classType.newInstance();
