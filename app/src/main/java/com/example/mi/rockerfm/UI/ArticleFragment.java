@@ -137,6 +137,8 @@ public class ArticleFragment extends Fragment {
 
         @Override
         public void onPageFinished(WebView view, String url) {
+            if(getActivity() == null)
+                return;
             Log.d("Time_Html_finished", System.currentTimeMillis() - olｄTime + "");
             Toast.makeText(getActivity(), "finish", Toast.LENGTH_SHORT).show();
             mWebViewJsAdapter.updateEmptySongs();

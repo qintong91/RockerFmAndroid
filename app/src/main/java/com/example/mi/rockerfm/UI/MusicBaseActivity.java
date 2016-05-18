@@ -2,11 +2,9 @@ package com.example.mi.rockerfm.UI;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import com.example.mi.rockerfm.R;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -31,9 +29,7 @@ public class MusicBaseActivity extends Activity {
     }
     @Override
           public void setContentView(int layoutResID) {
-
             LayoutInflater.from(this).inflate(layoutResID, contentLayout, true);
-
     }
     @Override
     public void setContentView(View customContentView) {

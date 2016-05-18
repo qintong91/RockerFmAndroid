@@ -1,23 +1,21 @@
 package com.example.mi.rockerfm.utls;
 
- import android.app.Activity;
- import android.media.MediaPlayer;
- import android.support.v7.widget.LinearLayoutManager;
- import android.support.v7.widget.RecyclerView;
+import android.app.Activity;
+import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.mi.rockerfm.Bus.ArticleClickEvent;
 import com.example.mi.rockerfm.Bus.MusicPlayStatusChangeEvent;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.R;
-import com.example.mi.rockerfm.UI.RockerFmMainActivity;
-import com.facebook.drawee.view.SimpleDraweeView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +38,7 @@ public class MusicPlayer {
     private RecyclerView.LayoutManager mLayoutManager;
     private Activity mActivity;
     private static MusicPlayer instance;
+    private AudioManager mAudioManager;
     public static MusicPlayer getInstance(RecyclerView recyclerView,Activity activity){
         if(instance == null){
             synchronized (MusicPlayer.class){
@@ -50,6 +49,7 @@ public class MusicPlayer {
          return instance;
     }
     private MusicPlayer(RecyclerView recyclerView,Activity activity){
+        mAudioManager = (AudioManager)activity.getSystemService(Context.AUDIO_SERVICE);
         mRecyclerView = recyclerView;
         mActivity = activity;
         mMediaPlayer = new MediaPlayer();
@@ -58,7 +58,9 @@ public class MusicPlayer {
         EventBus.getDefault().register(this);
     }
 
-    private boolean playSong(SongDetial.Song song){
+    private boolean addPlaySong(SongDetial.Song song){
+        if(!requestFocus())
+            return false;
         mSongList.add(song);
         mRecyclerAdapter.notifyDataSetChanged();
         if(mMediaPlayer == null)
@@ -87,11 +89,16 @@ public class MusicPlayer {
             return;
         mMediaPlayer.pause();
     }
-    @Subscribe(threadMode = ThreadMode.BackgroundThread)
+    private void playSong(){
+        if(mMediaPlayer == null || mMediaPlayer.isPlaying())
+            return;
+        mMediaPlayer.start();
+    }
+    @Subscribe(threadMode = ThreadMode.MainThread)
     public void onEvent(final MusicPlayStatusChangeEvent event) {
         switch (event.getState()){
             case  ADD_AND_PLAY :
-                playSong(event.getSong());
+                addPlaySong(event.getSong());
 
         }
     }
@@ -145,5 +152,27 @@ public class MusicPlayer {
 
             }
         }
+
     }
+    private boolean requestFocus() {
+        // Request audio focus for playback
+        int result = mAudioManager.requestAudioFocus(afChangeListener,
+                // Use the music stream.
+                AudioManager.STREAM_MUSIC,
+                // Request permanent focus.
+                AudioManager.AUDIOFOCUS_GAIN);
+        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+    }
+    AudioManager.OnAudioFocusChangeListener afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+        public void onAudioFocusChange(int focusChange) {
+            if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
+                // Lower the volume
+
+            } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+                // Raise it back to normal
+            } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                pauseSong();
+            }
+        }
+    };
 }

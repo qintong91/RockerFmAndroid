@@ -5,17 +5,12 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.mi.rockerfm.R;
 import com.example.mi.rockerfm.utls.MusicPlayer;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-
-import java.util.Arrays;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -34,6 +29,7 @@ public class RockerFmMainActivity extends FragmentActivity {
     View mDragView;
 
     private MusicPlayer mMusicPlayer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,15 +37,15 @@ public class RockerFmMainActivity extends FragmentActivity {
         ButterKnife.bind(this);
         mLayout.setAnchorPoint(0.7f);
         mDragView.setClickable(false);
-          mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
-              @Override
-              public void onPanelSlide(View panel, float slideOffset) {
-               }
+        mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+            }
 
-              @Override
-              public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
-               }
-          });
+            @Override
+            public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+            }
+        });
         mLayout.setFadeOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,7 +70,7 @@ public class RockerFmMainActivity extends FragmentActivity {
             }
         });
         getSupportFragmentManager().beginTransaction().replace(R.id.container, new ArticleFragment()).commit();
-        mMusicPlayer = MusicPlayer.getInstance(mRecyclerView,this);
+        mMusicPlayer = MusicPlayer.getInstance(mRecyclerView, this);
 
     }
 
