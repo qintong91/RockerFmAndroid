@@ -109,7 +109,7 @@ public class ArticleFragment extends Fragment {
             //Log.e("htmlDetial", mArticleContent.getContentHtml() + "");
             mWebView.loadDataWithBaseURL(null, mArticleContent.getContentHtml(), MIME_TYPE, ENCODING_UTF_8, null);
             Log.d("Time_Html_2222", System.currentTimeMillis() - olｄTime + "");
-            Toast.makeText(getActivity(), System.currentTimeMillis() - olｄTime + "", Toast.LENGTH_LONG).show();
+            //Toast.makeText(getActivity(), System.currentTimeMillis() - olｄTime + "", Toast.LENGTH_LONG).show(); 这是个问题
         }
 
         @Override
@@ -129,7 +129,7 @@ public class ArticleFragment extends Fragment {
             if(mMusicPlayStatusChangeEvent == null)
                 mMusicPlayStatusChangeEvent = new MusicPlayStatusChangeEvent();
             mMusicPlayStatusChangeEvent.setSong(mArticleContent.getSongsMap().get((url.split("//"))[1]));
-            mMusicPlayStatusChangeEvent.setState(MusicPlayStatusChangeEvent.RequestState.ADD_AND_PLAY);
+            mMusicPlayStatusChangeEvent.setState(MusicPlayStatusChangeEvent.RequestState.PLAY);
             EventBus.getDefault().post(mMusicPlayStatusChangeEvent);
             Toast.makeText(getActivity(), "Clicking" + url, Toast.LENGTH_SHORT).show();
             return true;

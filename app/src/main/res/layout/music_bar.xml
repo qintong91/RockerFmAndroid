@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/music_bar_height">
+
+    <com.facebook.drawee.view.SimpleDraweeView
+        android:id="@+id/img_album"
+        android:layout_width="@dimen/music_bar_img_height"
+        android:layout_height="@dimen/music_bar_img_height"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:background="@color/common_signin_btn_light_text_default"
+        android:paddingLeft="@dimen/music_bar_horizontal_padding"/>
+
+    <TextView
+        android:id="@+id/tv_music"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/img_album"
+        android:paddingLeft="@dimen/music_bar_horizontal_padding"
+        android:paddingTop="@dimen/music_bar_vertical_padding"
+        android:text="赵老水电费水电费收费"
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/tv_artists"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_toRightOf="@+id/img_album"
+        android:paddingBottom="@dimen/music_bar_vertical_padding"
+        android:paddingLeft="@dimen/music_bar_horizontal_padding"
+        android:text="赵老水电费"
+        android:textSize="10sp" />
+
+    <Button
+        android:id="@+id/button_list"
+        android:layout_width="@dimen/music_bar_button_size"
+        android:layout_height="@dimen/music_bar_button_size"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/button_play"
+        android:background="@drawable/ic_playlist_play_black_36dp"
+        android:paddingLeft="@dimen/music_bar_horizontal_padding"
+        android:paddingRight="@dimen/music_bar_horizontal_padding" />
+
+    <Button
+        android:id="@+id/button_play"
+        android:layout_width="@dimen/music_bar_button_size"
+        android:layout_height="@dimen/music_bar_button_size"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/button_skip"
+        android:background="@drawable/ic_play_circle_outline_black_36dp"
+        android:paddingLeft="@dimen/music_bar_horizontal_padding"
+        android:paddingRight="@dimen/music_bar_horizontal_padding" />
+
+    <Button
+        android:id="@+id/button_skip"
+        android:layout_width="@dimen/music_bar_button_size"
+        android:layout_height="@dimen/music_bar_button_size"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/ic_skip_next_black_36dp"
+        android:paddingLeft="@dimen/music_bar_horizontal_padding"
+        android:paddingRight="@dimen/music_bar_horizontal_padding" />
+
+
+</RelativeLayout>

@@ -7,8 +7,7 @@ import com.example.mi.rockerfm.JsonBeans.SongDetial;
  */
 public class MusicPlayStatusChangeEvent {
     public enum RequestState {
-        ADD_AND_PLAY,
-        DELETE,
+        PLAY,
         PUASE,
     }
 
