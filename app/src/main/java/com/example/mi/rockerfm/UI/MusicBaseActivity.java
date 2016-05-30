@@ -17,7 +17,7 @@ import android.widget.TextView;
 import com.example.mi.rockerfm.Bus.MusicPlayStatusChangeEvent;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.R;
-import com.example.mi.rockerfm.utls.MusicPlayer;
+import com.example.mi.rockerfm.Services.MusicPlayer;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 

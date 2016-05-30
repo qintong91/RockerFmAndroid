@@ -1,9 +1,16 @@
-package com.example.mi.rockerfm.utls;
+package com.example.mi.rockerfm.Services;
 
 import android.app.Application;
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.example.mi.rockerfm.Bus.MusicPlayStatusChangeEvent;
@@ -17,13 +24,16 @@ import java.util.List;
 /**
  * Created by qintong on 16-5-16.
  */
-public class MusicPlayer {
+public class MusicPlayer extends Service{
     private List<SongDetial.Song> mSongList;
     private MediaPlayer mMediaPlayer;
     private static MusicPlayer instance;
     private AudioManager mAudioManager;
     private SongDetial.Song mCurrentSong;
     private int mCurrentIndex;
+    private MediaSessionCompat mMediaSession;
+    private PlaybackStateCompat mPlaybackState;
+    private MediaControllerCompat mMediaController;
 
     public static MusicPlayer getInstance(Application application) {
         if (instance == null) {
@@ -131,5 +141,11 @@ public class MusicPlayer {
             return false;
         }
         return true;
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 }
