@@ -19,6 +19,7 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
+import com.example.mi.rockerfm.Model.MusicProvider;
 import com.example.mi.rockerfm.R;
 
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private AudioManager mAudioManager;
     private PlaybackStateCompat mPlaybackState;
     private MediaControllerCompat mMediaController;
+    private MusicProvider mMusicProvider;
 
     public class ServiceBinder extends Binder {
 
@@ -191,7 +193,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onCreate() {
         super.onCreate();
-
+        mMusicProvider = new MusicProvider();
         mPlaybackState = new PlaybackStateCompat.Builder()
                 .setState(PlaybackStateCompat.STATE_NONE, 0, 1.0f)
                 .build();
@@ -199,6 +201,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         // 1) set up media session and media session callback
         mMediaSession = new MediaSessionCompat(this, SESSION_TAG);
         mMediaSession.setCallback(mMediaSessionCallback);
+        mMediaSession.setQueue(mMusicProvider.getQueue());
         mMediaSession.setActive(true);
         mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
                 MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
