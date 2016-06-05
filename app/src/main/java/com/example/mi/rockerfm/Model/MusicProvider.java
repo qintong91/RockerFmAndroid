@@ -8,6 +8,8 @@ import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Created by qin on 2016/6/2.
@@ -15,13 +17,13 @@ import java.util.List;
 public class MusicProvider {
     public static final String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
     List<MediaSessionCompat.QueueItem> mQueue;
-     private final HashSet<String> mFavoriteSet;
+    private final ConcurrentMap<String, MediaMetadataCompat> mMusicListById;
     public MusicProvider(){
         mQueue = new ArrayList<MediaSessionCompat.QueueItem>();
-        mFavoriteSet = new HashSet<String>();
+        mMusicListById = new ConcurrentHashMap<String,MediaMetadataCompat>();
     }
     public int addMusicItem(SongDetial.Song song){
-        if(mFavoriteSet.contains(song.getId())){
+        if(mMusicListById.containsKey(song.getId())){
             for(int i =0 ;i< mQueue.size();i++){
                 MediaSessionCompat.QueueItem item = mQueue.get(i);
                 if (item.getDescription().getMediaId().equals(song.getId()))
@@ -29,20 +31,29 @@ public class MusicProvider {
             }
             return -1;
         }else {
-            mQueue.add(buildFromSong(song));
+            MediaMetadataCompat data = buildFromSong(song);
+            mQueue.add(new MediaSessionCompat.QueueItem(data.getDescription(), mQueue.size()));
+            mMusicListById.put(song.getId(),data);
             return mQueue.size()-1;
         }
 
     }
-    private MediaSessionCompat.QueueItem buildFromSong(SongDetial.Song song) {
+
+    public MediaMetadataCompat getMusic(String musicId) {
+        return mMusicListById.containsKey(musicId) ? mMusicListById.get(musicId) : null;
+    }
+
+    private MediaMetadataCompat buildFromSong(SongDetial.Song song) {
         MediaMetadataCompat data = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, song.getId())
                 .putString(CUSTOM_METADATA_TRACK_SOURCE, song.getmp3Url())
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, song.getAlbum().getName())
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, song.getAtistsString())
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION,song.getAtistsString())
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, song.getName())
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI,song.getAlbum().getPicUrl())
                 .build();
-        return new MediaSessionCompat.QueueItem(data.getDescription(), mQueue.size()+1);
+        return data;
     }
     public List<MediaSessionCompat.QueueItem> getQueue(){
         return mQueue;

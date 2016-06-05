@@ -1,11 +1,21 @@
 package com.example.mi.rockerfm.UI;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,11 +23,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.content.ServiceConnection;
 
 import com.example.mi.rockerfm.Bus.MusicPlayStatusChangeEvent;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.R;
 import com.example.mi.rockerfm.Services.MusicPlayer;
+import com.example.mi.rockerfm.Services.MusicService;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -32,7 +44,7 @@ import de.greenrobot.event.ThreadMode;
 /**
  * Created by qin on 2016/5/18.
  */
-public class MusicBaseActivity extends FragmentActivity implements View.OnClickListener{
+public class MusicBaseActivity extends FragmentActivity implements View.OnClickListener,ServiceConnection {
     SlidingUpPanelLayout musicLayout;
     @Bind(R.id.play_list) RecyclerView mRecyclerView;
     @Bind(R.id.dragView) View mDragView;
@@ -45,16 +57,20 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
     @Bind(R.id.img_album) SimpleDraweeView mAlbumView;
 
 
-    private MusicPlayer mMusicPlayer;
     private RecyclerView.LayoutManager mLayoutManager;
     private MusicRecyclerViewAdapter mRecyclerAdapter;
     private List<SongDetial.Song> mSongList;
+    private MediaSessionCompat.Token mMediaToken;
+    private MusicService.MusicServiceBinder mMusicServiceBinder;
+    private MediaControllerCompat mMediaController;
+    private List<MediaSessionCompat.QueueItem> mMusicQueue;
+    private MediaMetadataCompat mMediaMetadata;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mMusicPlayer = MusicPlayer.getInstance(getApplication());
-        mSongList = mMusicPlayer.getmSongList();
+        Intent intent = new Intent(this,MusicService.class);
+        bindService(intent,this, Context.BIND_AUTO_CREATE);
         initMusicView();
     }
     @Override
@@ -96,7 +112,6 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         mPlayButtom.setOnClickListener(this);
         mListButtom.setOnClickListener(this);
         mSkipButtom.setOnClickListener(this);
-        updateMusicBar();
         initRecyclerView();
     }
 
@@ -117,11 +132,12 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerAdapter = new MusicRecyclerViewAdapter();
         mRecyclerView.setAdapter(mRecyclerAdapter);
-        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration(){
+        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
             public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
                 c.drawColor(getResources().getColor(R.color.colorDivider));
             }
+
             @Override
             public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
                 outRect.set(0, 0, 0, 1);
@@ -141,9 +157,11 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         //将数据与界面进行绑定的操作
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, int position) {
-            SongDetial.Song song = mSongList.get(position);
-            viewHolder.mSongTextView.setText(new StringBuilder(song.getName()).append(" - ").append(song.getAtistsString()).toString());
-            if (mMusicPlayer.getCurrentIndex() == position)
+            MediaDescriptionCompat description = mMusicQueue.get(position).getDescription();
+            long id = mMusicQueue.get(position).getQueueId();
+            //SongDetial.Song song = mSongList.get(position);
+            viewHolder.mSongTextView.setText(new StringBuilder(description.getTitle()).append(" - ").append(description.getDescription()).toString());
+            if (description.getMediaId().equals(mMediaMetadata.getDescription().getMediaId()))
                 viewHolder.mSongTextView.setTextColor(getColor(R.color.colorAccent));
             else
                 viewHolder.mSongTextView.setTextColor(getColor(R.color.common_signin_btn_text_light));
@@ -172,48 +190,31 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
 
             @Override
             public void onClick(View v) {
-                mMusicPlayer.playSong(getAdapterPosition());
+                mMediaController.getTransportControls().skipToQueueItem(getAdapterPosition());
                 updateMusicView();
             }
         }
     }
-    @Subscribe(threadMode = ThreadMode.MainThread)
+    @Subscribe(threadMode = ThreadMode.MainThread) //子fragment调用 可以优化
       public void onEvent(final MusicPlayStatusChangeEvent event) {
+        if(mMediaController == null)
+            return;
         SongDetial.Song song = event.getSong();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(MusicService.OBJ_SONG,song);
         switch (event.getState()){
             case  PLAY :
-                mMusicPlayer.addPlaySong(song);
+                mMediaController.getTransportControls().playFromUri(null,bundle);
                 break;
         }
         updateMusicView();
-    }
-
-    private void updateMusicBar() {
-        SongDetial.Song song = mMusicPlayer.getmCurrentSong();
-        MusicPlayStatusChangeEvent.RequestState state = mMusicPlayer.getPlayState();
-        if(song == null)
-            return;
-        if (state == MusicPlayStatusChangeEvent.RequestState.PLAY) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp, null));
-            else
-                mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp));
-        } else if (state == MusicPlayStatusChangeEvent.RequestState.PUASE) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp, null));
-            else
-                mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp));
-        }
-        mAlbumView.setImageURI(Uri.parse(song.getAlbum().getPicUrl()));
-        mMusicTextView.setText(song.getName());
-        mArtistsTextView.setText(song.getAtistsString());
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_skip:
-                mMusicPlayer.skipSong();
+                mMediaController.getTransportControls().skipToNext();
                 updateMusicView();
                 break;
             case R.id.button_list:
@@ -226,16 +227,69 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
                 }
                 break;
             case R.id.button_play:
-                mMusicPlayer.changePlayStatus();
+                if(mMediaController == null)
+                    break;
+                if(mMediaController.getPlaybackState().getState()==PlaybackStateCompat.STATE_PLAYING)
+                    mMediaController.getTransportControls().pause();
+                else
+                    mMediaController.getTransportControls().play();
                 updateMusicView();
                 break;
         }
     }
 
     private void updateMusicView(){
-        updateMusicBar();
         mRecyclerAdapter.notifyDataSetChanged();
     }
 
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {       //connect Service
+        mMusicServiceBinder = (MusicService.MusicServiceBinder)service;
+        mMediaToken = mMusicServiceBinder.getToken();
+        try {
+            mMediaController = new MediaControllerCompat(MusicBaseActivity.this,mMediaToken);
+            mMediaController.registerCallback(new MusicControllerCallback());
+            mMusicQueue = mMediaController.getQueue();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Override
+    public void onServiceDisconnected(ComponentName name) {                 //disconnect Service
+        mMusicServiceBinder = null;
+    }
+    private class MusicControllerCallback extends MediaControllerCompat.Callback {
+        @Override
+        public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            switch(state.getState()){
+                case PlaybackStateCompat.STATE_PAUSED: {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                        mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp, null));
+                    else
+                        mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp));
+                    break;
+                }
+                case PlaybackStateCompat.STATE_PLAYING: {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                        mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp, null));
+                    else
+                        mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp));
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onMetadataChanged(MediaMetadataCompat metadata) {
+            mMediaMetadata = metadata;
+            mAlbumView.setImageURI(Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI));
+            mMusicTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
+            mArtistsTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+        }
+
+        @Override
+        public void onSessionDestroyed() {
+        }
+    }
 }

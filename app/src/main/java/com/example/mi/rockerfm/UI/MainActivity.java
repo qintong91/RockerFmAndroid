@@ -324,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
             call = Net.getmApi().mainArticles(1, 1);
             call.enqueue(new IfRefreshingCallback());
         }
-    }
+}
 
     private void setNetRequestFailure() {
         Toast.makeText(MainActivity.this, "网络请求失败", Toast.LENGTH_LONG).show();

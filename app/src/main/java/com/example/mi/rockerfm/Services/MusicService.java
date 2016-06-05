@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.session.MediaSession;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
@@ -26,9 +27,8 @@ import java.io.IOException;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener {
-
+    public static final String OBJ_SONG = "ObjSong";
     public static final String SESSION_TAG = "mmFM";
-
     public static final String ACTION_PLAY = "play";
     public static final String ACTION_PAUSE = "pause";
     public static final String ACTION_FAST_FORWARD = "fastForward";
@@ -43,14 +43,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private MediaControllerCompat mMediaController;
     private MusicProvider mMusicProvider;
 
-    public class ServiceBinder extends Binder {
+    public class MusicServiceBinder extends Binder {
 
         public MusicService getService() {
             return MusicService.this;
         }
+        public MediaSessionCompat.Token getToken() {return mMediaSession.getSessionToken();}
     }
 
-    private Binder mBinder = new ServiceBinder();
+    private Binder mBinder = new MusicServiceBinder();
 
     private MediaSessionCompat.Callback mMediaSessionCallback = new MediaSessionCompat.Callback() {
 
@@ -73,13 +74,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         mPlaybackState = new PlaybackStateCompat.Builder()
                                 .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
                                 .build();
-                        mMediaSession.setPlaybackState(mPlaybackState);
-                        mMediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "ESPN: PTI")
-                                .putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, "ESPN: PTI")
-                                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "ESPN")
-                                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Cubs The Favorites?: 10/14/15")
-                                .build());
                         break;
                     case PlaybackStateCompat.STATE_NONE:
                         mMediaPlayer.setDataSource(MusicService.this, uri);
@@ -87,16 +81,16 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         mPlaybackState = new PlaybackStateCompat.Builder()
                                 .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
                                 .build();
-                        mMediaSession.setPlaybackState(mPlaybackState);
-                        mMediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "ESPN: PTI")
-                                .putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, "ESPN: PTI")
-                                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "ESPN")
-                                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Cubs The Favorites?: 10/14/15")
-                                .build());
                         break;
 
                 }
+                mMediaSession.setPlaybackState(mPlaybackState);
+                mMediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "ESPN: PTI")
+                        .putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, "ESPN: PTI")
+                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "ESPN")
+                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Cubs The Favorites?: 10/14/15")
+                        .build());
             } catch (IOException e) {
 
             }
@@ -206,7 +200,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
                 MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mMediaSession.setPlaybackState(mPlaybackState);
-
+        mMediaSession.setMetadata();
         // 2) get instance to AudioManager
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
