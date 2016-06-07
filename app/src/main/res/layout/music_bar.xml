@@ -10,7 +10,7 @@
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
         android:background="@color/common_signin_btn_light_text_default"
-        android:paddingLeft="@dimen/music_bar_horizontal_padding"/>
+        android:layout_marginLeft="@dimen/music_bar_horizontal_padding"/>
 
     <TextView
         android:id="@+id/tv_music"
@@ -65,5 +65,16 @@
         android:paddingLeft="@dimen/music_bar_horizontal_padding"
         android:paddingRight="@dimen/music_bar_horizontal_padding" />
 
+    <SeekBar
+        android:id="@android:id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_alignParentBottom="true"
+
+        android:paddingLeft="0dp"
+        android:paddingRight="0dp"
+        android:max="100"
+        android:progress="10"
+        android:thumbOffset="5dip"/>
 
 </RelativeLayout>
