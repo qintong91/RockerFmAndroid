@@ -22,19 +22,14 @@ public class MusicProvider {
         mQueue = new ArrayList<MediaSessionCompat.QueueItem>();
         mMusicListById = new ConcurrentHashMap<String,MediaMetadataCompat>();
     }
-    public int addMusicItem(SongDetial.Song song){
+    public MediaMetadataCompat getMusicData(SongDetial.Song song){
         if(mMusicListById.containsKey(song.getId())){
-            for(int i =0 ;i< mQueue.size();i++){
-                MediaSessionCompat.QueueItem item = mQueue.get(i);
-                if (item.getDescription().getMediaId().equals(song.getId()))
-                    return i;
-            }
-            return -1;
+            return mMusicListById.get(song.getId());
         }else {
             MediaMetadataCompat data = buildFromSong(song);
             mQueue.add(new MediaSessionCompat.QueueItem(data.getDescription(), mQueue.size()));
             mMusicListById.put(song.getId(),data);
-            return mQueue.size()-1;
+            return data;
         }
 
     }

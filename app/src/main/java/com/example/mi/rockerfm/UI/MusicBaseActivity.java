@@ -3,6 +3,7 @@ package com.example.mi.rockerfm.UI;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -23,12 +24,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.content.ServiceConnection;
 
 import com.example.mi.rockerfm.Bus.MusicPlayStatusChangeEvent;
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.R;
-import com.example.mi.rockerfm.Services.MusicPlayer;
 import com.example.mi.rockerfm.Services.MusicService;
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -204,7 +203,7 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         bundle.putSerializable(MusicService.OBJ_SONG,song);
         switch (event.getState()){
             case  PLAY :
-                mMediaController.getTransportControls().playFromUri(null,bundle);
+                mMediaController.getTransportControls().playFromSearch(null,bundle);
                 break;
         }
         updateMusicView();
@@ -283,7 +282,7 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             mMediaMetadata = metadata;
-            mAlbumView.setImageURI(Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI));
+            mAlbumView.setImageURI(Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)));
             mMusicTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
             mArtistsTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
         }

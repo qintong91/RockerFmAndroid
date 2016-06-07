@@ -8,18 +8,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.media.session.MediaSession;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.support.v7.app.NotificationCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v7.app.NotificationCompat;
+import android.util.Log;
 
+import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.Model.MusicProvider;
 import com.example.mi.rockerfm.R;
 
@@ -42,6 +43,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private PlaybackStateCompat mPlaybackState;
     private MediaControllerCompat mMediaController;
     private MusicProvider mMusicProvider;
+    private MediaSessionCompat.Callback mMediaSessionCallback;
 
     public class MusicServiceBinder extends Binder {
 
@@ -53,100 +55,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     private Binder mBinder = new MusicServiceBinder();
 
-    private MediaSessionCompat.Callback mMediaSessionCallback = new MediaSessionCompat.Callback() {
 
-        @Override
-        public void onPlayFromSearch(String query, Bundle extras) {
-            Uri uri = extras.getParcelable(PARAM_TRACK_URI);
-            onPlayFromUri(uri, null);
-        }
-
-        @Override
-        public void onPlayFromUri(Uri uri, Bundle extras) {
-
-            try {
-                switch (mPlaybackState.getState()) {
-                    case PlaybackStateCompat.STATE_PLAYING:
-                    case PlaybackStateCompat.STATE_PAUSED:
-                        mMediaPlayer.reset();
-                        mMediaPlayer.setDataSource(MusicService.this, uri);
-                        mMediaPlayer.prepare();
-                        mPlaybackState = new PlaybackStateCompat.Builder()
-                                .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
-                                .build();
-                        break;
-                    case PlaybackStateCompat.STATE_NONE:
-                        mMediaPlayer.setDataSource(MusicService.this, uri);
-                        mMediaPlayer.prepare();
-                        mPlaybackState = new PlaybackStateCompat.Builder()
-                                .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
-                                .build();
-                        break;
-
-                }
-                mMediaSession.setPlaybackState(mPlaybackState);
-                mMediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "ESPN: PTI")
-                        .putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, "ESPN: PTI")
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "ESPN")
-                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Cubs The Favorites?: 10/14/15")
-                        .build());
-            } catch (IOException e) {
-
-            }
-
-        }
-
-        @Override
-        public void onPlay() {
-            switch (mPlaybackState.getState()) {
-                case PlaybackStateCompat.STATE_PAUSED:
-                    mMediaPlayer.start();
-                    mPlaybackState = new PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
-                            .build();
-                    mMediaSession.setPlaybackState(mPlaybackState);
-                    updateNotification();
-                    break;
-
-            }
-        }
-
-        @Override
-        public void onPause() {
-            switch (mPlaybackState.getState()) {
-                case PlaybackStateCompat.STATE_PLAYING:
-                    mMediaPlayer.pause();
-                    mPlaybackState = new PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
-                            .build();
-                    mMediaSession.setPlaybackState(mPlaybackState);
-                    updateNotification();
-                    break;
-
-            }
-        }
-
-        @Override
-        public void onRewind() {
-            switch (mPlaybackState.getState()) {
-                case PlaybackStateCompat.STATE_PLAYING:
-                    mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() - 10000);
-                    break;
-
-            }
-        }
-
-        @Override
-        public void onFastForward() {
-            switch (mPlaybackState.getState()) {
-                case PlaybackStateCompat.STATE_PLAYING:
-                    mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() + 10000);
-                    break;
-
-            }
-        }
-    };
 
     public MusicService() {
     }
@@ -162,7 +71,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
                 .build();
         mMediaSession.setPlaybackState(mPlaybackState);
-        updateNotification();
+        //updateNotification();
     }
 
     @Override
@@ -194,13 +103,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         // 1) set up media session and media session callback
         mMediaSession = new MediaSessionCompat(this, SESSION_TAG);
+        mMediaSessionCallback = new MusicMediaSessionCallback();
         mMediaSession.setCallback(mMediaSessionCallback);
         mMediaSession.setQueue(mMusicProvider.getQueue());
         mMediaSession.setActive(true);
         mMediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
                 MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mMediaSession.setPlaybackState(mPlaybackState);
-        mMediaSession.setMetadata();
         // 2) get instance to AudioManager
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -225,29 +134,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mMediaSession.release();
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        if (intent != null && intent.getAction() != null) {
-
-            switch (intent.getAction()) {
-                case ACTION_PLAY:
-                    mMediaController.getTransportControls().play();
-                    break;
-                case ACTION_FAST_FORWARD:
-                    mMediaController.getTransportControls().fastForward();
-                    break;
-                case ACTION_REWIND:
-                    mMediaController.getTransportControls().rewind();
-                    break;
-                case ACTION_PAUSE:
-                    mMediaController.getTransportControls().pause();
-                    break;
-            }
-        }
-
-        return super.onStartCommand(intent, flags, startId);
-    }
 
     private NotificationCompat.Action createAction(int iconResId, String title, String action) {
         Intent intent = new Intent(this, MusicService.class);
@@ -278,4 +164,95 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 .build();
          ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(1, notification);
     }
+
+    public class MusicMediaSessionCallback extends MediaSessionCompat.Callback {
+
+        @Override
+        public void onPlayFromSearch(String query, Bundle extras) {
+            Log.d("MusicService","onPlayFromUri");
+            try {
+                SongDetial.Song song = (SongDetial.Song)extras.getSerializable(OBJ_SONG);
+                mMediaPlayer.setDataSource(MusicService.this, Uri.parse(song.getmp3Url()));
+                switch (mPlaybackState.getState()) {
+                    case PlaybackStateCompat.STATE_PLAYING:
+                    case PlaybackStateCompat.STATE_PAUSED:
+                        mMediaPlayer.reset();
+                        mMediaPlayer.prepare();
+                        mPlaybackState = new PlaybackStateCompat.Builder()
+                                .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
+                                .build();
+                        break;
+                    case PlaybackStateCompat.STATE_NONE:
+                        mMediaPlayer.prepare();
+                        mPlaybackState = new PlaybackStateCompat.Builder()
+                                .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
+                                .build();
+                        break;
+
+                }
+                mMediaPlayer.start();
+                mPlaybackState = new PlaybackStateCompat.Builder()
+                        .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
+                        .build();
+
+                MediaMetadataCompat data = mMusicProvider.getMusicData(song);
+                mMediaSession.setMetadata(data);
+                mMediaSession.setPlaybackState(mPlaybackState);
+
+            } catch (IOException e) {
+
+            }
+
+        }
+
+        @Override
+        public void onPlay() {
+            switch (mPlaybackState.getState()) {
+                case PlaybackStateCompat.STATE_PAUSED:
+                    mMediaPlayer.start();
+                    mPlaybackState = new PlaybackStateCompat.Builder()
+                            .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
+                            .build();
+                    mMediaSession.setPlaybackState(mPlaybackState);
+                    //updateNotification();
+                    break;
+
+            }
+        }
+
+        @Override
+        public void onPause() {
+            switch (mPlaybackState.getState()) {
+                case PlaybackStateCompat.STATE_PLAYING:
+                    mMediaPlayer.pause();
+                    mPlaybackState = new PlaybackStateCompat.Builder()
+                            .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
+                            .build();
+                    mMediaSession.setPlaybackState(mPlaybackState);
+                    //updateNotification();
+                    break;
+
+            }
+        }
+
+        @Override
+        public void onRewind() {
+            switch (mPlaybackState.getState()) {
+                case PlaybackStateCompat.STATE_PLAYING:
+                    mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() - 10000);
+                    break;
+
+            }
+        }
+
+        @Override
+        public void onFastForward() {
+            switch (mPlaybackState.getState()) {
+                case PlaybackStateCompat.STATE_PLAYING:
+                    mMediaPlayer.seekTo(mMediaPlayer.getCurrentPosition() + 10000);
+                    break;
+
+            }
+        }
+    };
 }
