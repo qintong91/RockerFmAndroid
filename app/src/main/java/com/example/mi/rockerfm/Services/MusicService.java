@@ -13,6 +13,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -211,7 +212,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 case PlaybackStateCompat.STATE_PAUSED:
                     mMediaPlayer.start();
                     mPlaybackState = new PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
+                            .setState(PlaybackStateCompat.STATE_PLAYING,mMediaPlayer.getCurrentPosition(),1.0f)
                             .build();
                     mMediaSession.setPlaybackState(mPlaybackState);
                     //updateNotification();
@@ -226,7 +227,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 case PlaybackStateCompat.STATE_PLAYING:
                     mMediaPlayer.pause();
                     mPlaybackState = new PlaybackStateCompat.Builder()
-                            .setState(PlaybackStateCompat.STATE_PAUSED, 0, 1.0f)
+                            .setState(PlaybackStateCompat.STATE_PAUSED, mMediaPlayer.getCurrentPosition(), 1.0f)
                             .build();
                     mMediaSession.setPlaybackState(mPlaybackState);
                     //updateNotification();
@@ -255,4 +256,27 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             }
         }
     };
+    private void updatePlaybackState(String error) {
+         long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
+        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+            position = mMediaPlayer.getCurrentPosition();
+        }
+        int state = PlaybackStateCompat.STATE_NONE;
+        if(mPlaybackState != null)
+            state = mPlaybackState.getState();
+        PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder();
+        // If there is an error message, send it to the playback state:
+        if (error != null) {
+            // Error states are really only supposed to be used for errors that cause playback to
+            // stop unexpectedly and persist until the user takes action to fix it.
+            stateBuilder.setErrorMessage(error);
+            state = PlaybackStateCompat.STATE_ERROR;
+        }
+        stateBuilder.setState(state, position, 1.0f, SystemClock.elapsedRealtime());
+        mMediaSession.setPlaybackState(stateBuilder.build());
+        /*if (state == PlaybackStateCompat.STATE_PLAYING || state == PlaybackStateCompat.STATE_PAUSED) {
+            mMediaNotification.startNotification();
+        }*/
+    }
+
 }
