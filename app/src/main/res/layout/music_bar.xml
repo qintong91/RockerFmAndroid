@@ -66,13 +66,13 @@
         android:paddingRight="@dimen/music_bar_horizontal_padding" />
 
     <SeekBar
-        android:id="@android:id/progress"
+        android:id="@+id/seekbar_music"
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:layout_alignParentBottom="true"
 
-        android:paddingLeft="0dp"
-        android:paddingRight="0dp"
+        android:paddingLeft="0px"
+        android:paddingRight="0px"
         android:max="100"
         android:progress="10"
         android:thumbOffset="5dip"/>

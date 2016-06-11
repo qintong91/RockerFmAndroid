@@ -46,11 +46,16 @@ public class SongDetial implements Serializable {
             return sb.toString();
         }
 
+        public Long getDuration() {
+            return duration;
+        }
+
         private String mp3Url;
         private String name;
         private String id;
         private Album album;
         private List<Artist> artists;
+        private Long duration;
     }
 
     public static class Album implements Serializable {

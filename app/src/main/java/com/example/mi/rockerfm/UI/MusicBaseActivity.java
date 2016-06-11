@@ -9,8 +9,10 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -19,10 +21,12 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.mi.rockerfm.Bus.MusicPlayStatusChangeEvent;
@@ -43,7 +47,10 @@ import de.greenrobot.event.ThreadMode;
 /**
  * Created by qin on 2016/5/18.
  */
-public class MusicBaseActivity extends FragmentActivity implements View.OnClickListener,ServiceConnection {
+public class MusicBaseActivity extends FragmentActivity implements View.OnClickListener,ServiceConnection{
+    private static int BUTTON_STATE_PAULSE = 0;
+    private static int BUTTON_STATE_PLAY = 1;
+
     SlidingUpPanelLayout musicLayout;
     @Bind(R.id.play_list) RecyclerView mRecyclerView;
     @Bind(R.id.dragView) View mDragView;
@@ -54,6 +61,7 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
     @Bind(R.id.tv_music) TextView mMusicTextView;
     @Bind(R.id.tv_artists) TextView mArtistsTextView;
     @Bind(R.id.img_album) SimpleDraweeView mAlbumView;
+    @Bind(R.id.seekbar_music) SeekBar mSeekBar;
 
 
     private RecyclerView.LayoutManager mLayoutManager;
@@ -64,6 +72,9 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
     private MediaControllerCompat mMediaController;
     private List<MediaSessionCompat.QueueItem> mMusicQueue;
     private MediaMetadataCompat mMediaMetadata;
+    private PlaybackStateCompat mPlaybackState;
+    private Handler mHandler=new Handler();
+    private Runnable mSeekBarUpdateRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,12 +95,18 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         if (EventBus.getDefault().isRegistered(this))
             EventBus.getDefault().unregister(this);
     }
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        unbindService(this);
+
+    }
     private void initMusicView() {
         ViewGroup content = (ViewGroup) findViewById(android.R.id.content);
         content.removeAllViews();
         LayoutInflater flater = LayoutInflater.from(this);
         musicLayout = (SlidingUpPanelLayout)flater.inflate(R.layout.activity_rockerfm_main, null);
-        ButterKnife.bind(this,musicLayout);
+        ButterKnife.bind(this, musicLayout);
         content.addView(musicLayout);
         mDragView.setClickable(false);
         musicLayout.setAnchorPoint(0.6f);
@@ -111,6 +128,7 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         mPlayButtom.setOnClickListener(this);
         mListButtom.setOnClickListener(this);
         mSkipButtom.setOnClickListener(this);
+        initSeekBar();
         initRecyclerView();
     }
 
@@ -144,6 +162,21 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         });
     }
 
+    private void initSeekBar(){
+        mSeekBar.setPadding(0, 0, 0, 0);
+        mSeekBarUpdateRunnable =new Runnable() {
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                updateSeekBar();
+                //if(mMediaController != null && mMediaController.getQueue() == null)
+                //要做的事情
+                mHandler.postDelayed(this, 1000);
+            }
+        };
+        mHandler.postDelayed(mSeekBarUpdateRunnable, 1000);
+    }
+
     public class MusicRecyclerViewAdapter extends RecyclerView.Adapter<MusicRecyclerViewAdapter.ViewHolder> {
         //创建新View，被LayoutManager所调用
         @Override
@@ -156,8 +189,8 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         //将数据与界面进行绑定的操作
         @Override
         public void onBindViewHolder(ViewHolder viewHolder, int position) {
-            MediaDescriptionCompat description = mMusicQueue.get(position).getDescription();
-            long id = mMusicQueue.get(position).getQueueId();
+            MediaDescriptionCompat description = mMediaController.getQueue().get(position).getDescription();
+            long id = mMediaController.getQueue().get(position).getQueueId();
             //SongDetial.Song song = mSongList.get(position);
             viewHolder.mSongTextView.setText(new StringBuilder(description.getTitle()).append(" - ").append(description.getDescription()).toString());
             if (description.getMediaId().equals(mMediaMetadata.getDescription().getMediaId()))
@@ -171,7 +204,7 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         @Override
         public int getItemCount() {
             //return mArticles == null ? 0:mArticles.ArticleList.size();
-            return mSongList == null ? 0 : mSongList.size();
+            return mMediaController == null||mMediaController.getQueue() == null ? 0 : mMediaController.getQueue().size();
         }
 
         //自定义的ViewHolder，持有每个Item的的所有界面元素
@@ -203,7 +236,7 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
         bundle.putSerializable(MusicService.OBJ_SONG,song);
         switch (event.getState()){
             case  PLAY :
-                mMediaController.getTransportControls().playFromSearch(null,bundle);
+                mMediaController.getTransportControls().playFromSearch(null, bundle);
                 break;
         }
         updateMusicView();
@@ -258,25 +291,53 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
     public void onServiceDisconnected(ComponentName name) {                 //disconnect Service
         mMusicServiceBinder = null;
     }
+
+    private void updateDuration(MediaMetadataCompat metadata) {
+        if (metadata == null) {
+            return;
+        }
+        int duration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
+        mSeekBar.setMax(duration);
+    }
+
+    private void updateSeekBar() {
+        if (mPlaybackState == null) {
+            return;
+        }
+        long currentPosition = mPlaybackState.getPosition();
+        if (mPlaybackState.getState() == PlaybackStateCompat.STATE_NONE) {
+            currentPosition = 0;
+        } else if (mPlaybackState.getState() != PlaybackStateCompat.STATE_PAUSED) {
+            // Calculate the elapsed time between the last position update and now and unless
+            // paused, we can assume (delta * speed) + current position is approximately the
+            // latest position. This ensure that we do not repeatedly call the getPlaybackState()
+            // on MediaControllerCompat.
+            long timeDelta = SystemClock.elapsedRealtime() -
+                    mPlaybackState.getLastPositionUpdateTime();
+            currentPosition += (int) timeDelta * mPlaybackState.getPlaybackSpeed();
+        }
+        mSeekBar.setProgress((int) currentPosition);
+    }
+
     private class MusicControllerCallback extends MediaControllerCompat.Callback {
         @Override
         public void onPlaybackStateChanged(PlaybackStateCompat state) {
+            mPlaybackState = state;
             switch(state.getState()){
                 case PlaybackStateCompat.STATE_PAUSED: {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                        mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp, null));
-                    else
-                        mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp));
+                    changePlayButtton(BUTTON_STATE_PAULSE);
                     break;
                 }
                 case PlaybackStateCompat.STATE_PLAYING: {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                        mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp, null));
-                    else
-                        mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp));
+                    changePlayButtton(BUTTON_STATE_PLAY);
                     break;
                 }
+                case PlaybackStateCompat.STATE_NONE: {
+                    changePlayButtton(BUTTON_STATE_PLAY);
+                    mSeekBar.setProgress(0);
+                }
             }
+            mRecyclerAdapter.notifyDataSetChanged();
         }
 
         @Override
@@ -285,10 +346,26 @@ public class MusicBaseActivity extends FragmentActivity implements View.OnClickL
             mAlbumView.setImageURI(Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)));
             mMusicTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
             mArtistsTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+            mSeekBar.setMax((int)metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION));
         }
 
         @Override
         public void onSessionDestroyed() {
         }
+    }
+    private void changePlayButtton(int state) {
+        if(state == BUTTON_STATE_PLAY) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp, null));
+            else
+                mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp));
+
+        } else if(state == BUTTON_STATE_PAULSE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp, null));
+            else
+                mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp));
+        }
+
     }
 }

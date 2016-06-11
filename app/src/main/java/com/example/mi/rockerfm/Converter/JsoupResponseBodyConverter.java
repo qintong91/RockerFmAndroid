@@ -37,7 +37,9 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
     private static final String SRC = "src";
     private static final String ID = "id";
     private static final String PIC_ORG = "data-original";
-    private static final String HTML_HEAD = "<script>function updateSong(id,title,artists,album_src){  \n" +
+    private static final String HTML_HEAD = "<!DOCTYPE html>\n" +
+            "<html lang=\"zh-CN\" tag=\"zouyang\" xmlns:wb=\"http://open.weibo.com/wb\">"+
+            "<script>function updateSong(id,title,artists,album_src){  \n" +
             "var s = document.getElementById(id); \n" +
             "s.getElementsByTagName(\"a\")[0].href = 'music://'+id; \n" +
             "s.getElementsByClassName(\"title\")[0].innerHTML = title; \n" +
@@ -57,6 +59,7 @@ public class JsoupResponseBodyConverter<T> implements Converter<ResponseBody, T>
             "              s[i].getElementsByTagName(\"img\")[0].src = Android.getAlbumSrc(id);   \n" +
             " }\n" +
             "            }\n" +
+
             "          } </script>  " +
             "<head><style>img{max-width:100% ; height:auto ; text-align:center  !important;}</style></head>\n";
 

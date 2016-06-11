@@ -170,40 +170,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         @Override
         public void onPlayFromSearch(String query, Bundle extras) {
-            Log.d("MusicService","onPlayFromUri");
-            try {
-                SongDetial.Song song = (SongDetial.Song)extras.getSerializable(OBJ_SONG);
-                mMediaPlayer.setDataSource(MusicService.this, Uri.parse(song.getmp3Url()));
-                switch (mPlaybackState.getState()) {
-                    case PlaybackStateCompat.STATE_PLAYING:
-                    case PlaybackStateCompat.STATE_PAUSED:
-                        mMediaPlayer.reset();
-                        mMediaPlayer.prepare();
-                        mPlaybackState = new PlaybackStateCompat.Builder()
-                                .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
-                                .build();
-                        break;
-                    case PlaybackStateCompat.STATE_NONE:
-                        mMediaPlayer.prepare();
-                        mPlaybackState = new PlaybackStateCompat.Builder()
-                                .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
-                                .build();
-                        break;
+            SongDetial.Song song = (SongDetial.Song) extras.getSerializable(OBJ_SONG);
+            MediaMetadataCompat data = mMusicProvider.getMusicData(song);
+            playFromMediaMetaData(data);
+        }
 
-                }
-                mMediaPlayer.start();
-                mPlaybackState = new PlaybackStateCompat.Builder()
-                        .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
-                        .build();
-
-                MediaMetadataCompat data = mMusicProvider.getMusicData(song);
-                mMediaSession.setMetadata(data);
-                mMediaSession.setPlaybackState(mPlaybackState);
-
-            } catch (IOException e) {
-
-            }
-
+        @Override
+        public void onSkipToQueueItem(long id) {
+            playFromMediaMetaData(mMusicProvider.getMediaMetaDataByQueueItemId((int)id));
         }
 
         @Override
@@ -255,6 +229,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
             }
         }
+        @Override
+        public void onSkipToNext() {
+            playFromMediaMetaData(mMusicProvider.getNextMetadata());
+        }
     };
     private void updatePlaybackState(String error) {
          long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
@@ -279,4 +257,38 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }*/
     }
 
+    private void playFromMediaMetaData(MediaMetadataCompat data) {
+        if (data == null)
+            return;
+        try {
+            switch (mPlaybackState.getState()) {
+                case PlaybackStateCompat.STATE_PLAYING:
+                case PlaybackStateCompat.STATE_PAUSED:
+                    mMediaPlayer.reset();
+                    mPlaybackState = new PlaybackStateCompat.Builder()
+                            .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
+                            .build();
+                    break;
+                case PlaybackStateCompat.STATE_NONE:
+                    mPlaybackState = new PlaybackStateCompat.Builder()
+                            .setState(PlaybackStateCompat.STATE_CONNECTING, 0, 1.0f)
+                            .build();
+                    break;
+
+            }
+            mMediaPlayer.setDataSource(MusicService.this, Uri.parse(data.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE)));
+            mMediaPlayer.prepare();
+            mMediaPlayer.start();
+            mPlaybackState = new PlaybackStateCompat.Builder()
+                    .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1.0f)
+                    .build();
+            mMediaSession.setMetadata(data);
+            mMediaSession.setQueue(mMusicProvider.getQueue());
+            mMediaSession.setPlaybackState(mPlaybackState);
+
+        } catch (IOException e) {
+
+        }
+
+    }
 }
