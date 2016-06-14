@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         mArticles = Cache.getArticleList();
         if (isListEmpty()) {
             //Call<Articles> call = Net.getmApi().Articles();
-            Call<Articles> call = Net.getmApi().mainArticles(1, PAGE_SIZE);
+            Call<Articles> call = Net.getmApi().getArticles(1, PAGE_SIZE,"");
             call.enqueue(new ArticleListCallback());
         }
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!mIsLoadingMore) {
                     if (visibleItemCount + firstVisibleItem >= totalItemCount) {
                         mIsLoadingMore = true;
-                        Call<Articles> call = Net.getmApi().mainArticles(mArticles.getCurrentPage() + 1, PAGE_SIZE);
+                        Call<Articles> call = Net.getmApi().getArticles(mArticles.getCurrentPage() + 1, PAGE_SIZE,"");
                         call.enqueue(new LoadMoreCallback());
                         Log.e("aaaa", "loading ");
                     }
@@ -204,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                     mIsFreshing = false;
                 }
             } else {
-                call = Net.getmApi().mainArticles(1, response.body().getTotalCount() - mArticles.getTotalCount());
+                call = Net.getmApi().getArticles(1, response.body().getTotalCount() - mArticles.getTotalCount(),"");
                 call.enqueue(new RefreshingCallback());
             }
         }
@@ -318,10 +318,10 @@ public class MainActivity extends AppCompatActivity {
         Call<Articles> call = null;
         if (isListEmpty()) {
             //Call<Articles> call = Net.getmApi().Articles();
-            call = Net.getmApi().mainArticles(1, PAGE_SIZE);
+            call = Net.getmApi().getArticles(1, PAGE_SIZE,"");
             call.enqueue(new ArticleListCallback());
         } else {
-            call = Net.getmApi().mainArticles(1, 1);
+            call = Net.getmApi().getArticles(1, 1,"");
             call.enqueue(new IfRefreshingCallback());
         }
 }
