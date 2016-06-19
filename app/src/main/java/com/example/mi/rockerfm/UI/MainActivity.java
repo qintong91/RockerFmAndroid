@@ -36,7 +36,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends MusicBaseActivity {
     @Bind(R.id.recyclerView) RecyclerView mRecyclerview;
     @Bind(R.id.swiperefreshlayout) SwipeRefreshLayout mSwipeRefreshLayout;
     @Bind(R.id.toolbar) Toolbar mToolbar;

@@ -19,6 +19,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -47,7 +48,7 @@ import de.greenrobot.event.ThreadMode;
 /**
  * Created by qin on 2016/5/18.
  */
-public class MusicBaseActivity extends FragmentActivity implements View.OnClickListener,ServiceConnection{
+public class MusicBaseActivity extends AppCompatActivity implements View.OnClickListener,ServiceConnection{
     private static int BUTTON_STATE_PAULSE = 0;
     private static int BUTTON_STATE_PLAY = 1;
 
