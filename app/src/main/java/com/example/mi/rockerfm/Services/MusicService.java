@@ -19,7 +19,6 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
-import android.util.Log;
 
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.Model.MusicProvider;
@@ -45,6 +44,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private MediaControllerCompat mMediaController;
     private MusicProvider mMusicProvider;
     private MediaSessionCompat.Callback mMediaSessionCallback;
+    private MediaMetadataCompat mPlayingMediaMetadata;
 
     public class MusicServiceBinder extends Binder {
 
@@ -91,6 +91,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public IBinder onBind(Intent intent) {
+        if (mPlayingMediaMetadata != null) {
+            mMediaSession.setMetadata(mPlayingMediaMetadata);
+        }
         return mBinder;
     }
 
@@ -261,6 +264,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if (data == null)
             return;
         try {
+            mPlayingMediaMetadata = data;
             switch (mPlaybackState.getState()) {
                 case PlaybackStateCompat.STATE_PLAYING:
                 case PlaybackStateCompat.STATE_PAUSED:
@@ -291,4 +295,22 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
 
     }
+
+    AudioManager.OnAudioFocusChangeListener afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+        public void onAudioFocusChange(int focusChange) {
+            if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                // Pause playback
+                pause();
+            } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+                // Resume playback
+                resume();
+            } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                // mAm.unregisterMediaButtonEventReceiver(RemoteControlReceiver);
+                mAm.abandonAudioFocus(afChangeListener);
+                // Stop playback
+                stop();
+            }
+
+        }
+    };
 }

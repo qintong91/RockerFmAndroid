@@ -31,7 +31,7 @@ public class AriticleListsFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    @Bind(R.id.pager) private ViewPager mViewPager;
+    @Bind(R.id.pager) public ViewPager mViewPager;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -116,7 +116,7 @@ public class AriticleListsFragment extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
-    private static class ListPageAdapter extends PagerAdapter() {
+    /*private static class ListPageAdapter extends PagerAdapter() {
 
-    }
+    }*/
 }
