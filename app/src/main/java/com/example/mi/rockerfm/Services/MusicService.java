@@ -19,6 +19,7 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
+import android.util.Log;
 
 import com.example.mi.rockerfm.JsonBeans.SongDetial;
 import com.example.mi.rockerfm.Model.MusicProvider;
@@ -28,6 +29,8 @@ import java.io.IOException;
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnCompletionListener {
+    private static String TAG = "MusicService";
+
     public static final String OBJ_SONG = "ObjSong";
     public static final String SESSION_TAG = "mmFM";
     public static final String ACTION_PLAY = "play";
@@ -122,7 +125,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mMediaPlayer.setOnPreparedListener(this);
         mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setOnBufferingUpdateListener(this);
-
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         // 4) create the media controller
         try {
             mMediaController = new MediaControllerCompat(this, mMediaSession.getSessionToken());
@@ -134,6 +137,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mAudioManager.abandonAudioFocus(afChangeListener);
         mMediaPlayer.release();
         mMediaSession.release();
     }
@@ -196,6 +200,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     break;
 
             }
+            mAudioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         }
 
         @Override
@@ -211,6 +216,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     break;
 
             }
+            mAudioManager.abandonAudioFocus(afChangeListener);
+
         }
 
         @Override
@@ -261,6 +268,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     private void playFromMediaMetaData(MediaMetadataCompat data) {
+        mAudioManager.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         if (data == null)
             return;
         try {
@@ -298,19 +306,19 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     AudioManager.OnAudioFocusChangeListener afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         public void onAudioFocusChange(int focusChange) {
+            Log.d(TAG,"onAudioFocusChange"+focusChange);
             if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
                 // Pause playback
-                pause();
+                mMediaController.getTransportControls().pause();
             } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
                 // Resume playback
-                resume();
+                mMediaController.getTransportControls().play();
             } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
                 // mAm.unregisterMediaButtonEventReceiver(RemoteControlReceiver);
-                mAm.abandonAudioFocus(afChangeListener);
+                mAudioManager.abandonAudioFocus(afChangeListener);
                 // Stop playback
-                stop();
+                mMediaController.getTransportControls().pause();
             }
-
         }
     };
 }
