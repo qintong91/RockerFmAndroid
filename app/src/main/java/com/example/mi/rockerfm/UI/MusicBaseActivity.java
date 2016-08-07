@@ -48,21 +48,12 @@ import de.greenrobot.event.ThreadMode;
 /**
  * Created by qin on 2016/5/18.
  */
-public class MusicBaseActivity extends AppCompatActivity implements View.OnClickListener,ServiceConnection{
+public abstract class MusicBaseActivity extends AppCompatActivity implements View.OnClickListener,ServiceConnection{
     private static int BUTTON_STATE_PAULSE = 0;
     private static int BUTTON_STATE_PLAY = 1;
 
     SlidingUpPanelLayout musicLayout;
-    @Bind(R.id.play_list) RecyclerView mRecyclerView;
-    @Bind(R.id.dragView) View mDragView;
-    @Bind(R.id.container) ViewGroup mContainer;
-    @Bind(R.id.button_play) Button mPlayButtom;
-    @Bind(R.id.button_list) Button mListButtom;
-    @Bind(R.id.button_skip) Button mSkipButtom;
-    @Bind(R.id.tv_music) TextView mMusicTextView;
-    @Bind(R.id.tv_artists) TextView mArtistsTextView;
-    @Bind(R.id.img_album) SimpleDraweeView mAlbumView;
-    @Bind(R.id.seekbar_music) SeekBar mSeekBar;
+
 
 
     private RecyclerView.LayoutManager mLayoutManager;
@@ -76,6 +67,7 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
     private PlaybackStateCompat mPlaybackState;
     private Handler mHandler=new Handler();
     private Runnable mSeekBarUpdateRunnable;
+    private ViewHolder mViewHolder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,13 +95,14 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
 
     }
     private void initMusicView() {
+        mViewHolder = new ViewHolder();
         ViewGroup content = (ViewGroup) findViewById(android.R.id.content);
         content.removeAllViews();
         LayoutInflater flater = LayoutInflater.from(this);
         musicLayout = (SlidingUpPanelLayout)flater.inflate(R.layout.activity_rockerfm_main, null);
-        ButterKnife.bind(this, musicLayout);
+        ButterKnife.bind(mViewHolder, musicLayout);
         content.addView(musicLayout);
-        mDragView.setClickable(false);
+        mViewHolder.mDragView.setClickable(false);
         musicLayout.setAnchorPoint(0.6f);
         musicLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
@@ -126,31 +119,31 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
                 musicLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
             }
         });
-        mPlayButtom.setOnClickListener(this);
-        mListButtom.setOnClickListener(this);
-        mSkipButtom.setOnClickListener(this);
+        mViewHolder.mPlayButtom.setOnClickListener(this);
+        mViewHolder.mListButtom.setOnClickListener(this);
+        mViewHolder.mSkipButtom.setOnClickListener(this);
         initSeekBar();
         initRecyclerView();
     }
 
     @Override
     public void setContentView(int layoutResID) {
-         LayoutInflater.from(this).inflate(layoutResID, mContainer, true);
+         LayoutInflater.from(this).inflate(layoutResID, mViewHolder.mContainer, true);
     }
 
     @Override
     public void setContentView(View customContentView) {
 
-        mContainer.addView(customContentView);
+        mViewHolder.mContainer.addView(customContentView);
 
     }
 
     private void initRecyclerView() {
         mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        mViewHolder.mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerAdapter = new MusicRecyclerViewAdapter();
-        mRecyclerView.setAdapter(mRecyclerAdapter);
-        mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
+        mViewHolder.mRecyclerView.setAdapter(mRecyclerAdapter);
+        mViewHolder.mRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
             public void onDraw(Canvas c, RecyclerView parent, RecyclerView.State state) {
                 c.drawColor(getResources().getColor(R.color.colorDivider));
@@ -164,7 +157,7 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
     }
 
     private void initSeekBar(){
-        mSeekBar.setPadding(0, 0, 0, 0);
+        mViewHolder.mSeekBar.setPadding(0, 0, 0, 0);
         mSeekBarUpdateRunnable =new Runnable() {
             @Override
             public void run() {
@@ -281,6 +274,9 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
         mMediaToken = mMusicServiceBinder.getToken();
         try {
             mMediaController = new MediaControllerCompat(MusicBaseActivity.this,mMediaToken);
+            mMediaMetadata = mMediaController.getMetadata();
+            if(mMediaMetadata != null)
+                updateMusicBarView();
             mMediaController.registerCallback(new MusicControllerCallback());
             mMusicQueue = mMediaController.getQueue();
         } catch (RemoteException e) {
@@ -298,7 +294,7 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
             return;
         }
         int duration = (int) metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION);
-        mSeekBar.setMax(duration);
+        mViewHolder.mSeekBar.setMax(duration);
     }
 
     private void updateSeekBar() {
@@ -317,7 +313,7 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
                     mPlaybackState.getLastPositionUpdateTime();
             currentPosition += (int) timeDelta * mPlaybackState.getPlaybackSpeed();
         }
-        mSeekBar.setProgress((int) currentPosition);
+        mViewHolder.mSeekBar.setProgress((int) currentPosition);
     }
 
     private class MusicControllerCallback extends MediaControllerCompat.Callback {
@@ -335,7 +331,7 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
                 }
                 case PlaybackStateCompat.STATE_NONE: {
                     changePlayButtton(BUTTON_STATE_PLAY);
-                    mSeekBar.setProgress(0);
+                    mViewHolder.mSeekBar.setProgress(0);
                 }
             }
             mRecyclerAdapter.notifyDataSetChanged();
@@ -344,29 +340,50 @@ public class MusicBaseActivity extends AppCompatActivity implements View.OnClick
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             mMediaMetadata = metadata;
-            mAlbumView.setImageURI(Uri.parse(metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)));
-            mMusicTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
-            mArtistsTextView.setText(metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
-            mSeekBar.setMax((int)metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION));
+            updateMusicView();
+            updateMusicBarView();
         }
 
         @Override
         public void onSessionDestroyed() {
         }
+
+
     }
+
+    private void updateMusicBarView() {
+        mViewHolder.mAlbumView.setImageURI(Uri.parse(mMediaMetadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI)));
+        mViewHolder.mMusicTextView.setText(mMediaMetadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
+        mViewHolder.mArtistsTextView.setText(mMediaMetadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+        mViewHolder.mSeekBar.setMax((int) mMediaMetadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION));
+    }
+
     private void changePlayButtton(int state) {
         if(state == BUTTON_STATE_PLAY) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp, null));
+                mViewHolder.mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp, null));
             else
-                mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp));
+                mViewHolder.mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_pause_circle_outline_black_36dp));
 
         } else if(state == BUTTON_STATE_PAULSE) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp, null));
+                mViewHolder.mPlayButtom.setBackground(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp, null));
             else
-                mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp));
+                mViewHolder.mPlayButtom.setBackgroundDrawable(getResources().getDrawable(R.drawable.ic_play_circle_outline_black_36dp));
         }
 
+    }
+
+    static class ViewHolder {
+        @Bind(R.id.dragView) View mDragView;
+        @Bind(R.id.play_list) RecyclerView mRecyclerView;
+        @Bind(R.id.container) ViewGroup mContainer;
+        @Bind(R.id.button_play) Button mPlayButtom;
+        @Bind(R.id.button_list) Button mListButtom;
+        @Bind(R.id.button_skip) Button mSkipButtom;
+        @Bind(R.id.tv_music) TextView mMusicTextView;
+        @Bind(R.id.tv_artists) TextView mArtistsTextView;
+        @Bind(R.id.img_album) SimpleDraweeView mAlbumView;
+        @Bind(R.id.seekbar_music) SeekBar mSeekBar;
     }
 }
